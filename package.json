@@ -1,0 +1,30 @@
+{
+  "name": "osm-static-maps",
+  "version": "0.0.1",
+  "description": "Create a static image of a map with the features you want",
+  "author": "Julian Perelli",
+  "contributors": [
+    {
+      "name": "Julian Perelli",
+      "email": "jperelli@gmail.com"
+    },
+    {
+      "name": "Brenden Kokoszka",
+      "email": "brenden.kokoszka@gmail.com"
+    },
+    {
+      "name": "Matthew Chase Whittemore",
+      "email": "mcwhittemore@gmail.com"
+    }
+  ],
+  "license": "GPLv2",
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/jperelli/osm-static-maps.git"
+  },
+  "engine": [ "node >=0.7.00" ],
+  "optionalDependencies": {
+    "phantomjs": "~1.9.0-1"
+  },
+  "main": "./lib/osm-static-maps.js"
+}
