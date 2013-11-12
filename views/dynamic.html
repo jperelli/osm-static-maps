@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html style="height:100%;width:100%;margin:0;padding:0">
+    <head>
+        <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.6.4/leaflet.css" />
+        <script src="http://cdn.leafletjs.com/leaflet-0.6.4/leaflet.js"></script>
+    </head>
+    <body style="height:100%;width:100%;margin:0;padding:0">
+        <div id="map" style="background:lightblue; height:100%; width:100%"></div>
+        <script type="text/javascript">
+            map = new L.Map('map', { zoomControl:false });
+            {{#if geojson }}
+            var geojsonlayer = L.geoJson({{{ geojson }}});
+            geojsonlayer.addTo(map);
+            map.fitBounds(geojsonlayer);
+            {{else}}
+            map.setView(L.latLng({{ lat }}, {{ lon }}), {{ zoom }});
+            {{/if}}
+            var osmUrl='http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+            var osmAttrib='&copy; OpenStreetMap contributors';
+            var osm = new L.TileLayer(osmUrl, {maxZoom: 17, fadeAnimation: false});
+            map.attributionControl.setPrefix('Leaflet &amp; osm-static-maps').addAttribution( osmAttrib );
+            map.addLayer(osm);
+
+            // make sure that is loaded before taking the screenshot
+            osm.on('load', function(){ setTimeout( function(){if (window.callPhantom) window.callPhantom('takeShot') }, 1000)   } )
+        </script>
+    </body>
+</html>
+
