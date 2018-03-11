@@ -11,12 +11,13 @@ function makeContext(req) {
         zoom   : 12,
         geojson: "",
     }
-    if (req.param('geojson'))
-        context.geojson = req.param('geojson')
+    if (req.query.geojson)
+        context.geojson = req.query.geojson
     return context
 }
 
 exports.index = function(req, res){
+    console.log(req.query)
     var uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {var r = Math.random()*16|0,v=c=='x'?r:r&0x3|0x8;return v.toString(16);});
     fs.readFile('views/dynamic.html', 'utf8', function (err,data) {
         if (err) {
@@ -35,10 +36,10 @@ exports.index = function(req, res){
             var height = 600
             var width  = 800
             
-            if (req.param('height'))
-                height = req.param('height')
-            if (req.param('width'))
-                width  = req.param('width')
+            if (req.query.height)
+                height = req.query.height
+            if (req.query.width)
+                width  = req.query.width
             
             webshot(html, {siteType:'html', takeShotOnCallback: true, windowSize:{ width: width, height: height }, timeout:15000}, function(err, renderStream) {
                 if (!err) {
