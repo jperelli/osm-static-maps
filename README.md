@@ -20,6 +20,18 @@ Parameters can be passed to the app as GET (POST should be working also...)
 | width | height in pixels of the returned img | 
 | more things | to be added soon! |
 
+
+How to run
+==========
+
+nodejs is a prerequisite, please install it before this from here https://nodejs.org/
+```
+git clone git@github.com:jperelli/osm-static-maps.git
+cd osm-static-maps
+npm install
+npm start
+```
+
 Credits
 =======
 
