@@ -1,8 +1,12 @@
 <!DOCTYPE html>
 <html style="height:100%;width:100%;margin:0;padding:0">
     <head>
-        <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.6.4/leaflet.css" />
-        <script src="http://cdn.leafletjs.com/leaflet-0.6.4/leaflet.js"></script>
+        <style>
+        {{> leafletcss }}
+        </style>
+        <script>
+        {{> leafletjs }}
+        </script>
     </head>
     <body style="height:100%;width:100%;margin:0;padding:0">
         <div id="map" style="background:lightblue; height:100%; width:100%"></div>
@@ -11,7 +15,7 @@
             {{#if geojson }}
             var geojsonlayer = L.geoJson({{{ geojson }}});
             geojsonlayer.addTo(map);
-            map.fitBounds(geojsonlayer);
+            map.fitBounds(geojsonlayer.getBounds());
             {{else}}
             map.setView(L.latLng({{ lat }}, {{ lon }}), {{ zoom }});
             {{/if}}
