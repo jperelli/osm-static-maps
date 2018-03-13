@@ -20,6 +20,25 @@ Parameters can be passed to the app as GET (POST should be working also...)
 | width | height in pixels of the returned img | 
 | more things | to be added soon! |
 
+How to use
+==========
+
+1. This library is published in npm you can use it as an npm module
+
+```
+-shell-
+npm install osm-static-maps
+
+-index.js-
+osmsm = require('osm-static-maps');
+osmsm({geojson: geojson})
+  .then(function(imageStream) { ... })
+  .catch(function(error) { ... })
+```
+
+2. alternatively you can download the code, run the sample server and use it standalone (see How to run)
+
+3. lastly you can use the heroku-hosted alternative directly [here](http://osm-static-maps.herokuapp.com/ "Awesome!")
 
 How to run
 ==========
@@ -30,6 +49,14 @@ git clone git@github.com:jperelli/osm-static-maps.git
 cd osm-static-maps
 npm install
 npm start
+```
+
+Note that you can use yarn if you like it more than npm
+
+To develop use
+
+````
+npm run dev  # or just 'yarn dev'
 ```
 
 Credits

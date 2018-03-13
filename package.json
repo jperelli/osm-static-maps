@@ -1,6 +1,6 @@
 {
   "name": "osm-static-maps",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Create a static image of a map with the features you want",
   "author": "Julian Perelli",
   "contributors": [
@@ -26,10 +26,10 @@
     "npm": "1.2.x"
   },
   "scripts": {
-    "start": "node app.js",
-    "dev": "nodemon app.js"
+    "start": "node server.js",
+    "dev": "nodemon server.js"
   },
-  "main": "./lib/osm-static-maps.js",
+  "main": "./lib/lib.js",
   "devDependencies": {
     "nodemon": "^1.17.1"
   }

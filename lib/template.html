@@ -17,7 +17,7 @@
             geojsonlayer.addTo(map);
             map.fitBounds(geojsonlayer.getBounds());
             {{else}}
-            map.setView(L.latLng({{ lat }}, {{ lon }}), {{ zoom }});
+            map.setView(L.latLng({{ lat }}, {{ lng }}), {{ zoom }});
             {{/if}}
             var osmUrl='http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
             var osmAttrib='&copy; OpenStreetMap contributors';
