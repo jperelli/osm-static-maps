@@ -50,7 +50,9 @@ app.get('/', function(req, res) {
     lat: context.lat,
     lng: context.lng,
     zoom: context.zoom,
-    geojson: context.geojson
+    geojson: context.geojson,
+    // 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+    tileserverUrl: 'http://korona.geog.uni-heidelberg.de/tiles/roads/x={x}&y={y}&z={z}'
   }).then(function(stream) {
     stream.on('data', function(data) {
       res.write(data.toString('binary'), 'binary');
@@ -59,8 +61,7 @@ app.get('/', function(req, res) {
       res.end(data);
     });
   }).catch(function(err) {
-    res.send(err + ". Perhaps there is an error in your parameters?");
-    res.end();
+    res.end(". Perhaps there is an error in your parameters?");
   })
 
 });

@@ -11,13 +11,14 @@ And a [dynamic version](http://osm-static-maps.herokuapp.com/dynamic?geojson=[{"
 
 As a first approach, the service can render a geoJSON in a map, returning a PNG and you can determine also an optional height and width in pixels.
 
-Parameters can be passed to the app as GET (POST should be working also...)
+Parameters that can be used (some can be passed to the app server as GET query params)
 
 | Parameter | Description |
 | ---- | ---- | 
 | geojson | geojson object to be rendered in the map | 
 | height | height in pixels of the returned img | 
 | width | height in pixels of the returned img | 
+| tileserverUrl | url of a tileserver (default is official osm: 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png') | 
 | more things | to be added soon! |
 
 How to use
@@ -25,16 +26,16 @@ How to use
 
 1. This library is published in npm you can use it as an npm module
 
-```
--shell-
-npm install osm-static-maps
+  ```
+  -shell-
+  npm install osm-static-maps
 
--index.js-
-osmsm = require('osm-static-maps');
-osmsm({geojson: geojson})
-  .then(function(imageStream) { ... })
-  .catch(function(error) { ... })
-```
+  -index.js-
+  osmsm = require('osm-static-maps');
+  osmsm({geojson: geojson})
+    .then(function(imageStream) { ... })
+    .catch(function(error) { ... })
+  ```
 
 2. alternatively you can download the code, run the sample server and use it standalone (see How to run)
 
@@ -55,7 +56,7 @@ Note that you can use yarn if you like it more than npm
 
 To develop use
 
-````
+```
 npm run dev  # or just 'yarn dev'
 ```
 

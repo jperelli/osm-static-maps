@@ -19,14 +19,13 @@
             {{else}}
             map.setView(L.latLng({{ lat }}, {{ lng }}), {{ zoom }});
             {{/if}}
-            var osmUrl='http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
             var osmAttrib='&copy; OpenStreetMap contributors';
-            var osm = new L.TileLayer(osmUrl, {maxZoom: 17, fadeAnimation: false});
+            var osm = new L.TileLayer('{{{tileserverUrl}}}', {maxZoom: 17, fadeAnimation: false});
             map.attributionControl.setPrefix('Leaflet &amp; osm-static-maps').addAttribution( osmAttrib );
             map.addLayer(osm);
 
             // make sure that is loaded before taking the screenshot
-            osm.on('load', function(){ setTimeout( function(){if (window.callPhantom) window.callPhantom('takeShot') }, 1000)   } )
+            osm.on('load', function(){ setTimeout( function(){if (window.callPhantom) window.callPhantom('takeShot') }, 1)   } )
         </script>
     </body>
 </html>
