@@ -3,6 +3,9 @@
     <head>
         <style>
         {{> leafletcss }}
+        .leaflet-fade-anim {
+            transition: none;
+        }
         </style>
         <script>
         {{> leafletjs }}
@@ -11,9 +14,19 @@
     <body style="height:100%;width:100%;margin:0;padding:0">
         <div id="map" style="background:lightblue; height:100%; width:100%"></div>
         <script type="text/javascript">
+
             map = new L.Map('map', { zoomControl:false });
             {{#if geojson }}
-            var geojsonlayer = L.geoJson({{{ geojson }}});
+            var myIcon = L.icon({
+                iconUrl: "data:image/png;base64,{{> markericonpng}}",
+                iconSize: [25, 41],
+                iconAnchor: [15, 41]
+            });
+            var geojsonlayer = L.geoJson({{{ geojson }}}, {
+                pointToLayer: function (feature, latlng) {
+                    return L.marker(latlng, {icon: myIcon});
+                }
+            });
             geojsonlayer.addTo(map);
             map.fitBounds(geojsonlayer.getBounds());
             {{else}}
@@ -24,8 +37,6 @@
             map.attributionControl.setPrefix('Leaflet &amp; osm-static-maps').addAttribution( osmAttrib );
             map.addLayer(osm);
 
-            // make sure that is loaded before taking the screenshot
-            osm.on('load', function(){ setTimeout( function(){if (window.callPhantom) window.callPhantom('takeShot') }, 1)   } )
         </script>
     </body>
 </html>

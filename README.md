@@ -1,5 +1,4 @@
-osm-static-maps
-===============
+# osm-static-maps
 
 This pretends to be inspired in Google(c) static map service. But made using open source technologies.
 
@@ -14,15 +13,14 @@ As a first approach, the service can render a geoJSON in a map, returning a PNG 
 Parameters that can be used (some can be passed to the app server as GET query params)
 
 | Parameter | Description |
-| ---- | ---- | 
-| geojson | geojson object to be rendered in the map | 
-| height | height in pixels of the returned img | 
-| width | height in pixels of the returned img | 
-| tileserverUrl | url of a tileserver (default is official osm: 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png') | 
+| ---- | ---- |
+| geojson | geojson object to be rendered in the map |
+| height | height in pixels of the returned img |
+| width | height in pixels of the returned img |
+| tileserverUrl | url of a tileserver (default is official osm: 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png') |
 | more things | to be added soon! |
 
-How to use
-==========
+## How to use
 
 1. This library is published in npm you can use it as an npm module
 
@@ -41,8 +39,7 @@ How to use
 
 3. lastly you can use the heroku-hosted alternative directly [here](http://osm-static-maps.herokuapp.com/ "Awesome!")
 
-How to run
-==========
+## How to run
 
 nodejs is a prerequisite, please install it before this from here https://nodejs.org/
 ```
@@ -52,18 +49,20 @@ npm install
 npm start
 ```
 
-Note that you can use yarn if you like it more than npm
-
-To develop use
+To develop with autoreload you can run directly if you have the required node version installed on the system
 
 ```
-npm run dev  # or just 'yarn dev'
+npm install && npm run dev
 ```
 
-Credits
-=======
+Or you can use docker-compose
+```
+docker-compose up
+```
 
-Credits go to the outstanding, everlasting, fascinating opensource. Specially to
+## Credits
+
+Specially to the contributors of
 
 - OpenStreetMap
 - Leaflet
