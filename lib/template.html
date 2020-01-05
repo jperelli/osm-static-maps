@@ -2,40 +2,96 @@
 <html style="height:100%;width:100%;margin:0;padding:0">
     <head>
         <style>
-        {{> leafletcss }}
-        .leaflet-fade-anim {
+        //leafletcss//
+        .leaflet-fade-anim, .leaflet-zoom-anim {
             transition: none;
+        }
+        body {
+            height: 100%;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        #map {
+            background: lightblue;
+            height: 100%;
+            width: 100%;
         }
         </style>
         <script>
-        {{> leafletjs }}
+        //leafletjs//
         </script>
-    </head>
-    <body style="height:100%;width:100%;margin:0;padding:0">
-        <div id="map" style="background:lightblue; height:100%; width:100%"></div>
-        <script type="text/javascript">
 
-            map = new L.Map('map', { zoomControl:false });
+        {{#if vectorserverUrl}}
+            <style>
+            //mapboxcss//
+            </style>
+            <script>
+            //mapboxjs//
+            //leafletmapboxjs//
+            </script>
+        {{/if}}
+
+    </head>
+    <body>
+        <div id="map"></div>
+        <script>
+            var maxZoom = Number({{maxZoom}});
+            var initialPoint = L.latLng(-34.921779, -57.9524339);
+
+            var map = new L.Map('map', {
+                zoomControl: false,
+                center: initialPoint,
+                zoom: maxZoom,
+                maxZoom: maxZoom
+            });
+            map.attributionControl.setPrefix('').addAttribution('{{ attribution }}');
+
             {{#if geojson }}
-            var myIcon = L.icon({
-                iconUrl: "data:image/png;base64,{{> markericonpng}}",
-                iconSize: [25, 41],
-                iconAnchor: [15, 41]
-            });
-            var geojsonlayer = L.geoJson({{{ geojson }}}, {
-                pointToLayer: function (feature, latlng) {
-                    return L.marker(latlng, {icon: myIcon});
-                }
-            });
-            geojsonlayer.addTo(map);
-            map.fitBounds(geojsonlayer.getBounds());
-            {{else}}
-            map.setView(L.latLng({{ lat }}, {{ lng }}), {{ zoom }});
+                var myIcon = L.icon({
+                    iconUrl: "data:image/png;base64,//markericonpng//",
+                    iconSize: [25, 41],
+                    iconAnchor: [15, 41]
+                });
+                var geojsonlayer = L.geoJson({{{ geojson }}}, {
+                    pointToLayer: function (feature, latlng) {
+                        return L.marker(latlng, {icon: myIcon});
+                    }
+                });
+                geojsonlayer.addTo(map);
+                map.fitBounds(geojsonlayer.getBounds());
             {{/if}}
-            var osmAttrib='&copy; OpenStreetMap contributors';
-            var osm = new L.TileLayer('{{{tileserverUrl}}}', {maxZoom: 17, fadeAnimation: false});
-            map.attributionControl.setPrefix('Leaflet &amp; osm-static-maps').addAttribution( osmAttrib );
-            map.addLayer(osm);
+
+            {{#if center}}
+                map.panTo(L.latLng({{ center }}.split(',')[1], {{ center }}.split(',')[0]), {animate: false});
+            {{else}}
+                {{#if geojson}}
+                {{else}}
+                    map.panTo(initialPoint, {animate: false});
+                {{/if}}
+            {{/if}}
+
+            {{#if zoom}}
+                map.setZoom({{ zoom }}, {animate: false});
+            {{else}}
+                {{#if geojson }}
+                {{else}}
+                    map.setZoom(maxZoom, {animate: false})
+                {{/if}}
+            {{/if}}
+
+            {{#if vectorserverUrl}}
+                L.mapboxGL({
+                    accessToken: '{{ vectorserverToken }}',
+                    style: '{{{ vectorserverUrl }}}'
+                }).addTo(map);
+            {{else}}
+                {{#if tileserverUrl}}
+                    var osm = new L.TileLayer('{{{tileserverUrl}}}', {maxZoom: maxZoom, fadeAnimation: false});
+                    map.addLayer(osm);
+                {{/if}}
+            {{/if}}
+
 
         </script>
     </body>

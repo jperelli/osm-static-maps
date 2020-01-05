@@ -10,15 +10,23 @@ And a [dynamic version](http://osm-static-maps.herokuapp.com/dynamic?geojson=[{"
 
 As a first approach, the service can render a geoJSON in a map, returning a PNG and you can determine also an optional height and width in pixels.
 
-Parameters that can be used (some can be passed to the app server as GET query params)
+Parameters that can be used (can be passed to the app server as GET query params)
 
-| Parameter | Description |
-| ---- | ---- |
-| geojson | geojson object to be rendered in the map |
-| height | height in pixels of the returned img |
-| width | height in pixels of the returned img |
-| tileserverUrl | url of a tileserver (default is official osm: 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png') |
-| more things | to be added soon! |
+| Parameter | Description | Default Value |
+| ---- | ---- | ---- |
+| geojson | geojson object to be rendered in the map | `undefined` |
+| height | height in pixels of the returned img | `600` |
+| width | height in pixels of the returned img | `800` |
+| center | center of the map lon,lat floats string | (center of the geojson) or `'-57.9524339,-34.921779'` |
+| zoom | zoomlevel of the leaflet map | `12` |
+| maxZoom | max zoomlevel of the leaflet map | `17` |
+| attribution | attribution legend | `'osm-static-maps | &copy; OpenStreetMap contributors'` |
+| tileserverUrl | url of a tileserver | `'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'` |
+| vectorserverUrl | url of a vector tile server (MVT style.json) | `undefined` |
+| vectorserverToken | token of the vector tile server (MVT) | `'no-token'` |
+| renderToHtml | returns html of the webpage containing the map (instead of a binary image) | `false` |
+| type | format of the image returned (`'jpeg'`/`'png'`) | `'png'` |
+| quality | quality of the image returned (`0`-`100`, only for `jpg`) | `100` |
 
 ## How to use
 
@@ -66,6 +74,6 @@ Specially to the contributors of
 
 - OpenStreetMap
 - Leaflet
-- node-webshot
+- Puppeteer
 - ExpressJS
 - Handlebars
