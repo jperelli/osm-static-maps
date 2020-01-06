@@ -14,6 +14,11 @@ RUN \
     && \
     rm -rf /var/lib/apt/lists/*
 
+RUN \
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y \
+    && \
+    /root/.cargo/bin/cargo install oxipng
+
 WORKDIR /app
 EXPOSE 3000
 CMD [ "npm", "run", "installandstartdev" ]

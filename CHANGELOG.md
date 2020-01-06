@@ -1,3 +1,10 @@
+# 3.2.0
+
+Add optional lossless compresion
+
+ - Add `imagemin` boolean option to lossless compress the result image using [imagemin](https://github.com/imagemin/imagemin) (optipng / jpegtran)
+ - Add `oxipng` boolean option to lossless compress the result image using [oxipng](https://github.com/shssoichiro/oxipng) (only for png images) (searches in `/root/.cargo/bin/oxipng`, see how to install it in [Dockerfile](./Dockerfile))
+
 # 3.1.1
 
 Bugfixing

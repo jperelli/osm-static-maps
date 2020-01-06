@@ -27,6 +27,8 @@ Parameters that can be used (can be passed to the app server as GET query params
 | renderToHtml | returns html of the webpage containing the map (instead of a binary image) | `false` |
 | type | format of the image returned (`'jpeg'`/`'png'`) | `'png'` |
 | quality | quality of the image returned (`0`-`100`, only for `jpg`) | `100` |
+| imagemin | enable lossless compression with [optipng](https://github.com/imagemin/imagemin-optipng) / [jpegtran](https://github.com/imagemin/imagemin-jpegtran) | `false` |
+| oxipng | enable losslsess compression with [oxipng](https://github.com/shssoichiro/oxipng) | `false` |
 
 ## How to use
 
@@ -39,7 +41,7 @@ Parameters that can be used (can be passed to the app server as GET query params
   -index.js-
   osmsm = require('osm-static-maps');
   osmsm({geojson: geojson})
-    .then(function(imageStream) { ... })
+    .then(function(imageBinaryBuffer) { ... })
     .catch(function(error) { ... })
   ```
 
