@@ -1,6 +1,6 @@
 {
   "name": "osm-static-maps",
-  "version": "3.1.0",
+  "version": "3.1.1",
   "description": "Create a static image of a map with the features you want",
   "author": "Julian Perelli",
   "contributors": [
@@ -17,6 +17,9 @@
   "dependencies": {
     "express": "^4.17.1",
     "handlebars": "^4.5.3",
+    "imagemin": "^7.0.1",
+    "imagemin-jpegtran": "^6.0.0",
+    "imagemin-optipng": "^7.1.0",
     "leaflet": "^1.6.0",
     "mapbox-gl": "1.5.0",
     "mapbox-gl-leaflet": "0.0.11",

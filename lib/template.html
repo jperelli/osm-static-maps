@@ -59,7 +59,7 @@
                     }
                 });
                 geojsonlayer.addTo(map);
-                map.fitBounds(geojsonlayer.getBounds());
+                map.fitBounds(geojsonlayer.getBounds(), {maxZoom: maxZoom});
             {{/if}}
 
             {{#if center}}

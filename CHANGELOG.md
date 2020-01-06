@@ -1,3 +1,10 @@
+# 3.1.1
+
+Bugfixing
+
+ - Fix bug wrong zooming when no geojson
+ - Default to different zoom levels depending on vector vs raster tiles
+
 # 3.1.0
 
 Add mapbox vector tiles and expose more options

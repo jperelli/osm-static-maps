@@ -18,9 +18,9 @@ Parameters that can be used (can be passed to the app server as GET query params
 | height | height in pixels of the returned img | `600` |
 | width | height in pixels of the returned img | `800` |
 | center | center of the map lon,lat floats string | (center of the geojson) or `'-57.9524339,-34.921779'` |
-| zoom | zoomlevel of the leaflet map | `12` |
+| zoom | zoomlevel of the leaflet map | if `vectorserverUrl` available, use `12` else `20` |
 | maxZoom | max zoomlevel of the leaflet map | `17` |
-| attribution | attribution legend | `'osm-static-maps | &copy; OpenStreetMap contributors'` |
+| attribution | attribution legend | `'osm-static-maps / © OpenStreetMap contributors'` |
 | tileserverUrl | url of a tileserver | `'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'` |
 | vectorserverUrl | url of a vector tile server (MVT style.json) | `undefined` |
 | vectorserverToken | token of the vector tile server (MVT) | `'no-token'` |
