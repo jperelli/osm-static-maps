@@ -1,5 +1,7 @@
 # osm-static-maps
 
+This is a sample check
+
 This pretends to be inspired in Google(c) static map service. But made using open source technologies.
 
 You can find osm-static-maps [running in heroku](http://osm-static-maps.herokuapp.com/ "Fabulous!")
