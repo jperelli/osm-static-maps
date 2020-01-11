@@ -1,3 +1,12 @@
+# 3.3.0
+
+Add arrows option on linestrings
+
+ - Add `arrows` boolean option to show the direction of each linestring inside the geojson
+ - Updated all dependencies to latest version
+ - Improved nodemon to watch html template file
+ - Remove annoying package-lock.json and pin all versions directly
+
 # 3.2.0
 
 Add optional lossless compresion
