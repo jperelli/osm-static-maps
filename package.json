@@ -30,7 +30,7 @@
   },
   "scripts": {
     "start": "node sample-server.js",
-    "dev": "nodemon sample-server.js",
+    "dev": "nodemon -e js,html sample-server.js",
     "installandstartdev": "npm install && npm run dev"
   },
   "main": "./lib/lib.js",
