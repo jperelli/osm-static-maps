@@ -29,6 +29,7 @@ Parameters that can be used (can be passed to the app server as GET query params
 | quality | quality of the image returned (`0`-`100`, only for `jpg`) | `100` |
 | imagemin | enable lossless compression with [optipng](https://github.com/imagemin/imagemin-optipng) / [jpegtran](https://github.com/imagemin/imagemin-jpegtran) | `false` |
 | oxipng | enable losslsess compression with [oxipng](https://github.com/shssoichiro/oxipng) | `false` |
+| arrows | render arrows to show the direction of linestrings | `false` |
 
 ## How to use
 

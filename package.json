@@ -21,6 +21,7 @@
     "imagemin-jpegtran": "6.0.0",
     "imagemin-optipng": "7.1.0",
     "leaflet": "1.6.0",
+    "leaflet-polylinedecorator": "1.6.0",
     "mapbox-gl": "1.6.1",
     "mapbox-gl-leaflet": "0.0.11",
     "puppeteer": "2.0.0"
