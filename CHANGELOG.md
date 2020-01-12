@@ -1,3 +1,11 @@
+# 3.4.0
+
+Add typescript definitions, allow POST in server
+
+ - Add typescript definitions
+ - Allow sample-server to use POST json enconded body to get the parameters
+ - Allow library to be called without any arguments
+
 # 3.3.0
 
 Add arrows option on linestrings
