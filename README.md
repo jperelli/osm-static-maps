@@ -10,7 +10,7 @@ And a [dynamic version](http://osm-static-maps.herokuapp.com/dynamic?geojson=[{"
 
 As a first approach, the service can render a geoJSON in a map, returning a PNG and you can determine also an optional height and width in pixels.
 
-Parameters that can be used (can be passed to the app server as GET query params)
+Parameters that can be used (can be passed to the app server as GET query params, or POST json body (remember to set the header `Content-Type: application/json`))
 
 | Parameter | Description | Default Value |
 | ---- | ---- | ---- |
