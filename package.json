@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "express": "4.17.1",
-    "handlebars": "4.7.0",
+    "handlebars": "^4.7.1",
     "imagemin": "7.0.1",
     "imagemin-jpegtran": "6.0.0",
     "imagemin-optipng": "7.1.0",
