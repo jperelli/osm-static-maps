@@ -95,7 +95,7 @@
             {{/if}}
 
             {{#if center}}
-                map.panTo(L.latLng({{ center }}.split(',')[1], {{ center }}.split(',')[0]), {animate: false});
+                map.panTo(L.latLng('{{ center }}'.split(',')[1], '{{ center }}'.split(',')[0]), {animate: false});
             {{else}}
                 {{#if geojson}}
                 {{else}}
