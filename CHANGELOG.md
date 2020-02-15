@@ -1,3 +1,11 @@
+# 3.4.1
+
+Improve code reliability
+
+ - Improved requirements' path resolution: use builtin require() function instead of relying in custom paths
+ - Updated all dependencies to latest version
+ - Fix center parameter issue in sample server
+
 # 3.4.0
 
 Add typescript definitions, allow POST in server
