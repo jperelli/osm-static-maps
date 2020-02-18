@@ -1,3 +1,10 @@
+# 3.5.0
+
+Add scale and marker icon options
+
+ - Add scale parameter to render a scale ruler
+ - Add marker icon options
+
 # 3.4.1
 
 Improve code reliability
