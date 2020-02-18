@@ -39,16 +39,21 @@ Parameters that can be used (can be passed to the app server as GET query params
 
 1. This library is published in npm you can use it as an npm module
 
-  ```
-  -shell-
-  npm install osm-static-maps
+    ```bash
+    npm install osm-static-maps
+    ```
 
-  -index.js-
-  osmsm = require('osm-static-maps');
-  osmsm({geojson: geojson})
-    .then(function(imageBinaryBuffer) { ... })
-    .catch(function(error) { ... })
-  ```
+    ```javascript
+    // index.js old school
+    osmsm = require('osm-static-maps');
+    osmsm({geojson: geojson})
+      .then(function(imageBinaryBuffer) { ... })
+      .catch(function(error) { ... })
+
+    // index.js modern style (also supports typescript)
+    import osmsm from 'osm-static-maps'
+    const imageBinaryBuffer = await osmsm({geojson})
+    ```
 
 2. alternatively you can download the code, run the sample server and use it standalone (see How to run)
 
