@@ -30,6 +30,7 @@ Parameters that can be used (can be passed to the app server as GET query params
 | imagemin | enable lossless compression with [optipng](https://github.com/imagemin/imagemin-optipng) / [jpegtran](https://github.com/imagemin/imagemin-jpegtran) | `false` |
 | oxipng | enable losslsess compression with [oxipng](https://github.com/shssoichiro/oxipng) | `false` |
 | arrows | render arrows to show the direction of linestrings | `false` |
+| scale | enable render a scale ruler (boolean or [a json options object](https://leafletjs.com/reference-1.6.0.html#control-scale-option)) | `false` |
 
 ## How to use
 

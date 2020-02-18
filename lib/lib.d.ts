@@ -1,3 +1,5 @@
+import { Control } from "leaflet";
+
 export = _default;
 
 interface OsmStaticMapsOptions {
@@ -96,6 +98,12 @@ interface OsmStaticMapsOptions {
    * @defaultValue `false`
    */
   arrows?: boolean;
+
+  /**
+   * enable render a scale ruler (boolean or [a json options object](https://leafletjs.com/reference-1.6.0.html#control-scale-option))
+   * @defaultValue `false`
+   */
+  scale?: boolean | Control.ScaleOptions;
 }
 
 /** Renders a map controlled by the options passed and returns an image */

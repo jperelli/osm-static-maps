@@ -63,6 +63,10 @@
             });
             map.attributionControl.setPrefix('').addAttribution('{{ attribution }}');
 
+            {{#if scale}}
+                L.control.scale({{{scale}}}).addTo(map);
+            {{/if}}
+
             {{#if geojson }}
                 var myIcon = L.icon({
                     iconUrl: "data:image/png;base64,//markericonpng//",
