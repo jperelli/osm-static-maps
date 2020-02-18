@@ -1,4 +1,4 @@
-import { Control } from "leaflet";
+import { Control, IconOptions } from "leaflet";
 
 export = _default;
 
@@ -104,6 +104,12 @@ interface OsmStaticMapsOptions {
    * @defaultValue `false`
    */
   scale?: boolean | Control.ScaleOptions;
+
+  /**
+   * set marker icon options ([a json options object](https://leafletjs.com/reference-1.6.0.html#icon-option))
+   * @defaultValue `undefined`
+   */
+  markerIconOptions?: IconOptions;
 }
 
 /** Renders a map controlled by the options passed and returns an image */

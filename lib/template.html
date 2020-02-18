@@ -68,13 +68,20 @@
             {{/if}}
 
             {{#if geojson }}
-                var myIcon = L.icon({
-                    iconUrl: "data:image/png;base64,//markericonpng//",
-                    iconSize: [25, 41],
-                    iconAnchor: [15, 41]
-                });
+                {{#if markerIconOptions}}
+                    var myIcon = L.icon({{{markerIconOptions}}});
+                {{else}}
+                    var myIcon = L.icon({
+                        iconUrl: "data:image/png;base64,//markericonpng//",
+                        iconSize: [25, 41],
+                        iconAnchor: [15, 41]
+                    });
+                {{/if}}
                 var geojsonlayer = L.geoJson({{{ geojson }}}, {
                     pointToLayer: function (feature, latlng) {
+                        if (feature.markerIconOptions) {
+                            return L.marker(latlng, {icon: L.icon(feature.markerIconOptions)})
+                        }
                         return L.marker(latlng, {icon: myIcon});
                     },
                     onEachFeature: function (feature, layer) {
