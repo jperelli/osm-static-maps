@@ -20,14 +20,14 @@ app.use((req, res, next) => {
   next();
 });
 
-const handler = (res, params) => {
-  osmsm(params)
+const handler = (res, params, request_method = null) => {
+  osmsm(params, request_method)
     .then(data => res.end(data))
     .catch(err => res.status(500).end(err.toString()));
 };
 
-app.get("/", (req, res) => handler(res, req.query));
-app.post("/", (req, res) => handler(res, req.body));
+app.get("/", (req, res) => handler(res, req.query, req.method));
+app.post("/", (req, res) => handler(res, req.body, req.method));
 
 app.get("/dynamic", (req, res) =>
   handler(res, { ...req.query, renderToHtml: true })
