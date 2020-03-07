@@ -1,3 +1,9 @@
+# 3.5.1
+
+Fix geojson option
+
+ - Fix geojson option being an object was not being parsed right and throwed an error
+
 # 3.5.0
 
 Add scale and marker icon options
