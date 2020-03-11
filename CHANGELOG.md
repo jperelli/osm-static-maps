@@ -1,3 +1,9 @@
+# 3.5.2 (npm unreleased)
+
+Fix sample server issues
+
+ - Fix sample server using too many resources, make headless browser singleton
+
 # 3.5.1
 
 Fix geojson option
