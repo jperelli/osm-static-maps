@@ -16,7 +16,15 @@ http
   );
 
 app.use((req, res, next) => {
-  console.log("[" + new Date().toISOString() + "] " + req.originalUrl);
+  console.log(
+    "[" +
+      new Date().toISOString() +
+      "] " +
+      " (" +
+      req.headers.referer +
+      ") " +
+      req.originalUrl
+  );
   next();
 });
 
