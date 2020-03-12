@@ -16,7 +16,7 @@ interface OsmStaticMapsOptions {
   height?: number;
 
   /**
-   * height in pixels of the returned img
+   * width in pixels of the returned img
    * @defaultValue `800`
    */
   width?: number;
@@ -40,7 +40,7 @@ interface OsmStaticMapsOptions {
   maxZoom?: number;
 
   /**
-   * attribution legend
+   * attribution legend watermark
    * @defaultValue `'osm-static-maps / © OpenStreetMap contributors'`
    */
   attribution?: string;
