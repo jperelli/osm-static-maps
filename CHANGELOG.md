@@ -1,8 +1,12 @@
-# 3.5.2 (npm unreleased)
+# 3.6.0
 
-Fix sample server issues
+New CLI interface, puppeteer singleton
 
+ - Add CLI interface
  - Fix sample server using too many resources, make headless browser singleton
+ - Updated all dependencies to latest version
+ - Refactored README
+ - Refactored project directory structure
 
 # 3.5.1
 
