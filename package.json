@@ -23,7 +23,7 @@
     "imagemin-optipng": "7.1.0",
     "leaflet": "1.6.0",
     "leaflet-polylinedecorator": "1.6.0",
-    "mapbox-gl": "1.7.0",
+    "mapbox-gl": "1.8.1",
     "mapbox-gl-leaflet": "0.0.11",
     "puppeteer": "2.1.1"
   },
