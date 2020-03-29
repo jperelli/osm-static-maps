@@ -82,7 +82,43 @@ program
   .option(
     "-k, --markerIconOptions <json string>",
     "Set marker icon options (see doc in https://leafletjs.com/reference-1.6.0.html#icon-option)"
-  );
+  )
+  .action(function(cmd) {
+    const opts = cmd.opts();
+
+    // DEBUG
+    // process.stderr.write(JSON.stringify(opts, undefined, 2));
+    // process.stderr.write("\n");
+
+    if (!["png", "jpeg"].includes(opts.type)) {
+      process.stderr.write(
+        '-F|--type can only have the values "png" or "jpeg"\n'
+      );
+      process.exit(2);
+    }
+
+    osmsm(opts)
+      .then(v => {
+        process.stdout.write(v);
+        process.stdout.end();
+        process.exit(0);
+      })
+      .catch(e => {
+        process.stderr.write(e.toString());
+        process.exit(1);
+      });
+  });
+
+program
+  .command("serve")
+  .option("-p, --port <number>", "Port number to listen")
+  .action(function(cmd) {
+    const server = require("./server");
+    const port = cmd.port || process.env.PORT || 3000;
+    server.listen(port, function() {
+      console.log("osmsm server listening on port " + port);
+    });
+  });
 
 program.on("--help", function() {
   process.stdout.write("\n");
@@ -97,25 +133,3 @@ program.on("--help", function() {
 });
 
 program.parse(process.argv);
-
-const opts = program.opts();
-
-// DEBUG
-// process.stderr.write(JSON.stringify(opts, undefined, 2));
-// process.stderr.write("\n");
-
-if (!["png", "jpeg"].includes(opts.type)) {
-  process.stderr.write('-F|--type can only have the values "png" or "jpeg"\n');
-  process.exit(2);
-}
-
-osmsm(opts)
-  .then(v => {
-    process.stdout.write(v);
-    process.stdout.end();
-    process.exit(0);
-  })
-  .catch(e => {
-    process.stderr.write(e.toString());
-    process.exit(1);
-  });

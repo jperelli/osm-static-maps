@@ -1,3 +1,11 @@
+# 3.7.0
+
+Add serve command to CLI
+
+ - Add serve subcommand to CLI
+ - Fix sample-server
+ - Updated all dependencies to latest version
+
 # 3.6.0
 
 New CLI interface, puppeteer singleton

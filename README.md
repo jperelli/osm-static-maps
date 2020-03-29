@@ -20,7 +20,7 @@ osmsm -g '{"type":"Point","coordinates":[-105.01621,39.57422]}' > map.png
 
 ```bash
 sudo npm i -g osm-static-maps --unsafe-perm=true
-``` 
+```
 
 ### 2. nodejs library
 
@@ -42,15 +42,15 @@ const imageBinaryBuffer = await osmsm({geojson})
 
 ### 3. Standalone sample server
 
-```
-git clone git@github.com:jperelli/osm-static-maps.git
-cd osm-static-maps
-npm install
-npm start
+```bash
+sudo npm i -g osm-static-maps
+osmsm serve
 ```
 
 Or you can use docker-compose
-```
+```bash
+git clone git@github.com:jperelli/osm-static-maps.git
+cd osm-static-maps
 docker-compose up
 ```
 

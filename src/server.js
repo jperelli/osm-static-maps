@@ -1,19 +1,13 @@
 var express = require("express"),
   http = require("http"),
-  osmsm = require("./lib/lib.js");
+  osmsm = require("./lib.js");
 
 var app = express();
-app.set("port", process.env.PORT || 3000);
+// app.set("port", process.env.PORT || 3000);
 app.set("views", __dirname + "/lib");
 app.set("view engine", "handlebars");
 app.set("view options", { layout: false });
 app.use(express.json({ limit: "50mb" }));
-
-http
-  .createServer(app)
-  .listen(app.get("port"), () =>
-    console.log("Express server listening on port " + app.get("port"))
-  );
 
 app.use((req, res, next) => {
   console.log(
@@ -44,3 +38,5 @@ app.get("/dynamic", (req, res) =>
 app.post("/dynamic", (req, res) =>
   handler(res, { ...req.body, renderToHtml: true })
 );
+
+module.exports = http.createServer(app)

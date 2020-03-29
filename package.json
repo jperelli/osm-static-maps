@@ -1,6 +1,6 @@
 {
   "name": "osm-static-maps",
-  "version": "3.6.0",
+  "version": "3.7.0",
   "description": "Create a static image of a map with the features you want",
   "author": "Julian Perelli",
   "contributors": [
@@ -15,7 +15,7 @@
     "url": "http://github.com/jperelli/osm-static-maps.git"
   },
   "dependencies": {
-    "commander": "4.1.1",
+    "commander": "5.0.0",
     "express": "4.17.1",
     "handlebars": "4.7.3",
     "imagemin": "7.0.1",
@@ -23,16 +23,16 @@
     "imagemin-optipng": "7.1.0",
     "leaflet": "1.6.0",
     "leaflet-polylinedecorator": "1.6.0",
-    "mapbox-gl": "1.8.1",
-    "mapbox-gl-leaflet": "0.0.11",
+    "mapbox-gl": "1.9.0",
+    "mapbox-gl-leaflet": "0.0.12",
     "puppeteer": "2.1.1"
   },
   "engines": {
     "node": ">=12"
   },
   "scripts": {
-    "start": "node sample-server.js",
-    "dev": "nodemon -e js,html sample-server.js",
+    "start": "node src/cli.js serve",
+    "dev": "nodemon -e js,html src/cli.js serve",
     "installandstartdev": "npm install && npm run dev"
   },
   "main": "./src/lib.js",

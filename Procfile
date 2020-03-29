@@ -1,1 +1,1 @@
-web: node sample-server.js
+web: node src/cli.js serve
