@@ -16,6 +16,12 @@ osmsm --help
 osmsm -g '{"type":"Point","coordinates":[-105.01621,39.57422]}' > map.png
 ```
 
+* note: if you have this error trying to install globally `Error: EACCES: permission denied, mkdir '/usr/local/lib/node_modules/osm-static-maps/node_modules/puppeteer/.local-chromium'`, it's caused by this pupeteer issue https://github.com/puppeteer/puppeteer/issues/367, you can workaround by installing globally with the `unsafe-perm` flag:
+
+```bash
+sudo npm i -g osm-static-maps --unsafe-perm=true
+``` 
+
 ### 2. nodejs library
 
 ```bash
