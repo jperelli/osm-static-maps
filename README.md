@@ -87,6 +87,10 @@ All parameters have a short and long version. The short version can be used only
 
 * Note on markerIconOptions: it's also accepted a markerIconOptions attribute in the geojson feature, for example `{"type":"Point","coordinates":[-105.01621,39.57422],"markerIconOptions":{"iconUrl":"https://leafletjs.com/examples/custom-icons/leaf-red.png"}}`
 
+## Design considerations & architecture 
+
+[Read the blogpost](https://jperelli.com.ar/project/2019/10/01/osm-static-maps/) on the creation of this library and how it works internally
+
 ## LICENSE
 
  - GPLv2
@@ -100,3 +104,4 @@ Specially to the contributors of
 - Puppeteer
 - ExpressJS
 - Handlebars
+
