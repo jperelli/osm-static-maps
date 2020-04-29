@@ -44,6 +44,10 @@ program
     "http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
   )
   .option(
+    "-sub, --tileSubdomains <string>",
+    "Subdomains of a tileserver"
+  )
+  .option(
     "-m, --vectorserverUrl <string>",
     "Url of a vector tile server (MVT style.json)"
   )

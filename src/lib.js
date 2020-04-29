@@ -63,6 +63,7 @@ module.exports = function(options) {
     options.maxZoom = options.maxZoom || (options.vectorserverUrl ? 20 : 17);
     options.attribution = options.attribution || 'osm-static-maps | © OpenStreetMap contributors';
     options.tileserverUrl = options.tileserverUrl || 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+    options.tileSubdomains = options.tileSubdomains || '';
     options.vectorserverUrl = options.vectorserverUrl || '';
     options.vectorserverToken = options.vectorserverToken || 'no-token';
     options.imagemin = options.imagemin || false;
