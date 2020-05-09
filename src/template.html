@@ -86,7 +86,7 @@
                     },
                     onEachFeature: function (feature, layer) {
                         {{#if arrows}}
-                            if (feature.geometry.type == 'LineString') {
+                            if (feature.type == 'LineString' || (feature.geometry && feature.geometry.type == 'LineString')) {
                                 L.polylineDecorator(L.polyline(layer._latlngs), {patterns: [
                                     {offset: 5, repeat: 150, symbol: decorator},
                                     {offset: 12, repeat: 150, symbol: decorator},
