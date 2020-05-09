@@ -110,6 +110,12 @@ interface OsmStaticMapsOptions {
    * @defaultValue `undefined`
    */
   markerIconOptions?: IconOptions;
+
+  /**
+   * miliseconds until page load throws timeout
+   * @defaultValue `20000`
+   */
+  timeout?: number;
 }
 
 /** Renders a map controlled by the options passed and returns an image */

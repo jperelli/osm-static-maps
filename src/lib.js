@@ -70,6 +70,7 @@ module.exports = function(options) {
     options.arrows = options.arrows || false;
     options.scale = (options.scale && (typeof options.scale === 'string' ? options.scale : JSON.stringify(options.scale))) || false;
     options.markerIconOptions = (options.markerIconOptions && (typeof options.markerIconOptions === 'string' ? options.markerIconOptions : JSON.stringify(options.markerIconOptions))) || false;
+    options.timeout = typeof options.timeout == undefined ? 20000 : options.timeout
 
     const html = replacefiles(template(options));
 
@@ -91,7 +92,7 @@ module.exports = function(options) {
           width: Number(options.width),
           height: Number(options.height)
         });
-        await page.setContent(html, { waitUntil: 'networkidle0', timeout: 20000 });
+        await page.setContent(html, { waitUntil: 'networkidle0', timeout: Number(options.timeout) });
 
         let imageBinary = await page.screenshot({
           type: options.type || 'png',

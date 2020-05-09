@@ -83,6 +83,12 @@ program
     "-k, --markerIconOptions <json string>",
     "Set marker icon options (see doc in https://leafletjs.com/reference-1.6.0.html#icon-option)"
   )
+  .option(
+    "-T, --timeout <number>",
+    "Miliseconds until page load throws timeout",
+    Number,
+    20000
+  )
   .action(function(cmd) {
     const opts = cmd.opts();
 

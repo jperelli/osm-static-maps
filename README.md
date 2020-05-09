@@ -84,6 +84,7 @@ All parameters have a short and long version. The short version can be used only
 | a | arrows | render arrows to show the direction of linestrings | `false` |
 | s | scale | enable render a scale ruler (boolean or [a json options object](https://leafletjs.com/reference-1.6.0.html#control-scale-option)) | `false` |
 | k | markerIconOptions | set marker icon options ([a json options object](https://leafletjs.com/reference-1.6.0.html#icon-option)) *see note | `undefined` (leaflet's default marker) |
+| T | timeout | miliseconds until page load throws timeout | `20000` |
 
 * Note on markerIconOptions: it's also accepted a markerIconOptions attribute in the geojson feature, for example `{"type":"Point","coordinates":[-105.01621,39.57422],"markerIconOptions":{"iconUrl":"https://leafletjs.com/examples/custom-icons/leaf-red.png"}}`
 
