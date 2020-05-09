@@ -89,6 +89,10 @@ program
     Number,
     20000
   )
+  .option(
+    "-S, --style <json string>",
+    "Set path style options (see doc in https://leafletjs.com/reference-1.6.0.html#path-option)"
+  )
   .action(function(cmd) {
     const opts = cmd.opts();
 

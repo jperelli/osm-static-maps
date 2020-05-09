@@ -95,11 +95,19 @@
                             }
                         {{/if}}
                     },
-                    {{#if arrows}}
-                    style: {
-                        weight: 10,
+                    style: function(feature) {
+                        var style = {}
+                        {{#if arrows}}
+                            Object.assign(style, { weight: 10 })
+                        {{/if}}
+                        {{#if style}}
+                            Object.assign(style, {{{ style }}})
+                        {{/if}}
+                        if (feature.geometry.pathOptions) {
+                            Object.assign(style, feature.geometry.pathOptions)
+                        }
+                        return style
                     },
-                    {{/if}}
                 });
                 geojsonlayer.addTo(map);
                 map.fitBounds(geojsonlayer.getBounds(), {maxZoom: maxZoom});

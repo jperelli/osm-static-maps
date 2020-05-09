@@ -1,4 +1,4 @@
-import { Control, IconOptions } from "leaflet";
+import { Control, IconOptions, PathOptions } from "leaflet";
 
 export = _default;
 
@@ -116,6 +116,12 @@ interface OsmStaticMapsOptions {
    * @defaultValue `20000`
    */
   timeout?: number;
+
+  /**
+   *
+   * @defaultValue `undefined`
+   */
+  style?: PathOptions;
 }
 
 /** Renders a map controlled by the options passed and returns an image */
