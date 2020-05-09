@@ -1,3 +1,14 @@
+# 3.8.0
+
+Add styling options to features
+
+ - Add per feature and global style configuration option
+ - Add timeout option
+ - Add Dockerfile kanji font support
+ - Add geojson typescript type
+ - Fix arrows argument crashing lib
+ - Update all dependencies to the latest version
+
 # 3.7.0
 
 Add serve command to CLI
