@@ -11,6 +11,7 @@ RUN \
         libasound2 \
         libatk-bridge2.0-0 \
         libgtk-3-0 \
+        fonts-wqy-zenhei \
     && \
     rm -rf /var/lib/apt/lists/*
 
