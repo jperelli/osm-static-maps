@@ -19,13 +19,13 @@
     "express": "4.17.1",
     "handlebars": "4.7.6",
     "imagemin": "7.0.1",
-    "imagemin-jpegtran": "6.0.0",
-    "imagemin-optipng": "7.1.0",
+    "imagemin-jpegtran": "7.0.0",
+    "imagemin-optipng": "8.0.0",
     "leaflet": "1.6.0",
     "leaflet-polylinedecorator": "1.6.0",
-    "mapbox-gl": "1.10.0",
+    "mapbox-gl": "1.11.1",
     "mapbox-gl-leaflet": "0.0.12",
-    "puppeteer": "3.0.4"
+    "puppeteer": "5.2.1"
   },
   "engines": {
     "node": ">=12"
@@ -40,6 +40,6 @@
     "osmsm": "./src/cli.js"
   },
   "devDependencies": {
-    "nodemon": "2.0.3"
+    "nodemon": "2.0.4"
   }
 }
