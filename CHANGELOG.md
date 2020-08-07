@@ -1,3 +1,10 @@
+# 3.8.1
+
+Maintenance
+
+ - Upgrade dependencies, outstandingly puppeteer from 3.x to 5.x
+ - Improve sample-server logging client information
+
 # 3.8.0
 
 Add styling options to features
