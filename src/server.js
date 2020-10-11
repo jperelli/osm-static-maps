@@ -19,6 +19,23 @@ app.use((req, res, next) => {
   next();
 });
 
+
+function htmlEscape(text) {
+  return text.replace(/&/g, '&amp;').
+  replace(/</g, '&lt;').
+  replace(/"/g, '&quot;').
+  replace(/'/g, '&#039;');
+}
+
+
+function sanitize(params) {
+  result = {}
+  for (let [key, value] of Object.entries(params)) {
+      result[key] = htmlEscape(value)
+  }
+  return result;
+}
+
 app.get("/health", (req, res) => res.sendStatus(200));
 
 const handler = (res, params) => {
@@ -40,12 +57,14 @@ const handler = (res, params) => {
 app.get("/", (req, res) => handler(res, req.query));
 app.post("/", (req, res) => handler(res, req.body));
 
-app.get("/dynamic", (req, res) =>
-  handler(res, { ...req.query, renderToHtml: true })
-);
+app.get("/dynamic", (req, res) => {
+  var sanitized = sanitize(req.query)
+  handler(res, { ...sanitized, renderToHtml: true })
+})
 
-app.post("/dynamic", (req, res) =>
-  handler(res, { ...req.body, renderToHtml: true })
-);
+app.post("/dynamic", (req, res) => {
+  var sanitized = sanitize(req.body)
+  handler(res, { ...sanitized, renderToHtml: true })
+})
 
 module.exports = http.createServer(app);
