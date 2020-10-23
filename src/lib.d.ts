@@ -10,6 +10,12 @@ interface OsmStaticMapsOptions {
   geojson?: string | GeoJSON.GeoJSON;
 
   /**
+   * Geojson file name to be rendered in the map
+   * @defaultValue `undefined`
+   */
+  geojsonfile?: string;
+
+  /**
    * height in pixels of the returned img
    * @defaultValue `600`
    */
