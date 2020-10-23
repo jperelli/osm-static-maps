@@ -11,6 +11,7 @@ program
     "[options]\nGenerate an image of a geojson with a background map layer"
   )
   .option("-g, --geojson <string>", "Geojson object to be rendered")
+  .option("-f, --geojsonfile <string>", "Geojson file name to be rendered (\"-\" reads STDIN)")
   .option(
     "-H, --height <number>",
     "Height in pixels of the returned img",
@@ -138,6 +139,12 @@ program.on("--help", function() {
   );
   process.stdout.write(
     `  $ osmsm -g '[{"type":"Feature","properties":{"party":"Republican"},"geometry":{"type":"Polygon","coordinates":[[[-104.05,48.99],[-97.22,48.98],[-96.58,45.94],[-104.03,45.94],[-104.05,48.99]]]}},{"type":"Feature","properties":{"party":"Democrat"},"geometry":{"type":"Polygon","coordinates":[[[-109.05,41.00],[-102.06,40.99],[-102.03,36.99],[-109.04,36.99],[-109.05,41.00]]]}}]' --height=300 --width=300\n`
+  );
+  process.stdout.write(
+    `  $ osmsm -f /path/to/my_file.json\n`
+  );
+  process.stdout.write(
+    `  $ program_with_geojson_on_stdout | osmsm -f -\n`
   );
   process.stdout.write("\n");
 });

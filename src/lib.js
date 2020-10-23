@@ -56,6 +56,7 @@ module.exports = function(options) {
   return new Promise(function(resolve, reject) {
     options = options || {};
     options.geojson = (options.geojson && (typeof options.geojson === 'string' ? options.geojson : JSON.stringify(options.geojson))) || '';
+    options.geojsonfile = options.geojsonfile || '';
     options.height = options.height || 600;
     options.width = options.width || 800;
     options.center = options.center || '';
@@ -72,6 +73,10 @@ module.exports = function(options) {
     options.markerIconOptions = (options.markerIconOptions && (typeof options.markerIconOptions === 'string' ? options.markerIconOptions : JSON.stringify(options.markerIconOptions))) || false;
     options.style = (options.style && (typeof options.style === 'string' ? options.style : JSON.stringify(options.style))) || false;
     options.timeout = typeof options.timeout == undefined ? 20000 : options.timeout
+
+    if (options.geojsonfile) {
+      options.geojson= fs.readFileSync(options.geojsonfile=="-"?process.stdin.fd:options.geojsonfile, 'utf8');
+    }
 
     const html = replacefiles(template(options));
 
