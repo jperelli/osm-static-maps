@@ -27,9 +27,8 @@ function htmlEscape(text) {
   replace(/'/g, '&#039;');
 }
 
-
 function sanitize(params) {
-  result = {}
+  let result = {}
   for (let [key, value] of Object.entries(params)) {
       result[key] = htmlEscape(value)
   }

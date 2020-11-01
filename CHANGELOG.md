@@ -2,9 +2,10 @@
 
 Read geojson from file or stdin
 
-- Add new option '-f' to read geojson from file, stdin ('-') or url
-- Fix minor issue on console error misses
-- Fix HTML/JS injection in sample server
+ - Add new option `-f` to read geojson from file, stdin (`-`) or url
+ - Fix issue on console error misses, add `haltOnConsoleError` option
+ - Prevent HTML/JS injection vulnerability in sample server
+ - Upgrade dependencies
 
 # 3.8.1
 

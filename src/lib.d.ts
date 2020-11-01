@@ -128,6 +128,13 @@ interface OsmStaticMapsOptions {
    * @defaultValue `undefined`
    */
   style?: PathOptions;
+
+  /**
+   * throw error if there is any `console.error(...)` when rendering the map image
+   *
+   * @defaultValue `false`
+   */
+  haltOnConsoleError?: Boolean;
 }
 
 /** Renders a map controlled by the options passed and returns an image */

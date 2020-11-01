@@ -94,6 +94,7 @@ module.exports = function(options) {
     options.markerIconOptions = (options.markerIconOptions && (typeof options.markerIconOptions === 'string' ? options.markerIconOptions : JSON.stringify(options.markerIconOptions))) || false;
     options.style = (options.style && (typeof options.style === 'string' ? options.style : JSON.stringify(options.style))) || false;
     options.timeout = typeof options.timeout == undefined ? 20000 : options.timeout;
+    options.haltOnConsoleError = !!options.haltOnConsoleError;
 
     (async () => {
 
@@ -125,8 +126,8 @@ module.exports = function(options) {
         page.on('error', function (err) { reject(err.toString()) })
         page.on('pageerror', function (err) { reject(err.toString()) })
         page.on('console', function (msg) {
-          if (msg.type() === 'error') {
-            reject(JSON.stringify(msg))
+          if (options.haltOnConsoleError && msg.type() === "error") {
+            reject(JSON.stringify(msg));
           }
         })
         await page.setViewport({
