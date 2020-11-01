@@ -22,6 +22,16 @@ app.use((req, res, next) => {
 app.get("/health", (req, res) => res.sendStatus(200));
 
 const handler = (res, params) => {
+  const filename = params.f || params.geojsonfile
+  if (
+    filename &&
+    !(filename.startsWith("http://") ||
+    filename.startsWith("https://"))
+  ) {
+    throw new Error(
+      `'geojsonfile' parameter on server only allowed if filename starts with http(s)`
+    );
+  }
   osmsm(params)
     .then((data) => res.end(data))
     .catch((err) => res.status(500).end(err.toString()));
