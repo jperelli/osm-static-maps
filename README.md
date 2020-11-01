@@ -67,6 +67,7 @@ All parameters have a short and long version. The short version can be used only
 |   | Parameter | Description | Default Value |
 | - | ---- | ---- | ---- |
 | g | geojson | geojson object to be rendered in the map | `undefined` |
+| f | geojsonfile | filename or url to read geojson data from (use '-' to read from stdin on CLI) | `undefined` |
 | H | height | height in pixels of the returned img | `600` |
 | W | width | height in pixels of the returned img | `800` |
 | c | center | center of the map lon,lat floats string | (center of the geojson) or `'-57.9524339,-34.921779'` |
