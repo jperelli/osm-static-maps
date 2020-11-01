@@ -1,4 +1,6 @@
 const fs = require('fs');
+const http = require('http');
+const https = require("https");
 const Handlebars = require('handlebars');
 const puppeteer = require('puppeteer');
 const path = require('path');
@@ -52,6 +54,25 @@ class Browser {
 const browser = new Browser();
 
 
+function httpGet(url) {
+  // from https://stackoverflow.com/a/41471647/912450
+  const httpx = url.startsWith('https') ? https : http;
+  return new Promise((resolve, reject) => {
+    let req = httpx.get(url, (res) => {
+      if (res.statusCode !== 200) {
+        reject(`Error ${res.statusCode} trying to get geojson file from ${url}`);
+      }
+      res.setEncoding('utf8');
+      let rawData = '';
+      res.on('data', (chunk) => { rawData += chunk; });
+      res.on('end', () => resolve(rawData) );
+    });
+    req.on('error', (err) => {
+      reject(err);
+    });
+  });
+}
+
 module.exports = function(options) {
   return new Promise(function(resolve, reject) {
     options = options || {};
@@ -72,19 +93,33 @@ module.exports = function(options) {
     options.scale = (options.scale && (typeof options.scale === 'string' ? options.scale : JSON.stringify(options.scale))) || false;
     options.markerIconOptions = (options.markerIconOptions && (typeof options.markerIconOptions === 'string' ? options.markerIconOptions : JSON.stringify(options.markerIconOptions))) || false;
     options.style = (options.style && (typeof options.style === 'string' ? options.style : JSON.stringify(options.style))) || false;
-    options.timeout = typeof options.timeout == undefined ? 20000 : options.timeout
-
-    if (options.geojsonfile) {
-      options.geojson= fs.readFileSync(options.geojsonfile=="-"?process.stdin.fd:options.geojsonfile, 'utf8');
-    }
-
-    const html = replacefiles(template(options));
-
-    if (options.renderToHtml) {
-      return resolve(html);
-    }
+    options.timeout = typeof options.timeout == undefined ? 20000 : options.timeout;
 
     (async () => {
+
+      if (options.geojsonfile) {
+        if (options.geojson) {
+          throw new Error(`Only one option allowed: 'geojsonfile' or 'geojson'`)
+        }
+        if (options.geojsonfile.startsWith("http://") || options.geojsonfile.startsWith("https://")) {
+          options.geojson = await httpGet(options.geojsonfile)
+        }
+        else {
+          options.geojson = fs.readFileSync(
+            options.geojsonfile == "-"
+              ? process.stdin.fd
+              : options.geojsonfile,
+            "utf8"
+          );
+        }
+      }
+
+      const html = replacefiles(template(options));
+
+      if (options.renderToHtml) {
+        return resolve(html);
+      }
+
       const page = await browser.getPage();
       try {
         page.on('error', function (err) { reject(err.toString()) })
