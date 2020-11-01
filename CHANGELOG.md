@@ -1,3 +1,9 @@
+# 3.9.0
+
+Read geojson from file or stdin
+
+- Add new option '-f' to read geojson from file, stdin ('-') or url
+
 # 3.8.1
 
 Maintenance

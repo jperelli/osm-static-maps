@@ -10,7 +10,7 @@ interface OsmStaticMapsOptions {
   geojson?: string | GeoJSON.GeoJSON;
 
   /**
-   * Geojson file name to be rendered in the map
+   * Filename or url of a geojson to be rendered in the map ('-' to use stdin)
    * @defaultValue `undefined`
    */
   geojsonfile?: string;
