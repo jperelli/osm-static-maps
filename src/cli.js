@@ -94,6 +94,11 @@ program
     "-S, --style <json string>",
     "Set path style options (see doc in https://leafletjs.com/reference-1.6.0.html#path-option)"
   )
+  .option(
+    "-e, --haltOnConsoleError",
+    "throw error if there is any console.error(...) when rendering the map image",
+    false
+  )
   .action(function(cmd) {
     const opts = cmd.opts();
 
