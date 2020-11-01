@@ -3,6 +3,7 @@
 Read geojson from file or stdin
 
 - Add new option '-f' to read geojson from file, stdin ('-') or url
+- Fix minor issue on console error misses
 
 # 3.8.1
 

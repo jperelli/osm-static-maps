@@ -125,7 +125,7 @@ module.exports = function(options) {
         page.on('error', function (err) { reject(err.toString()) })
         page.on('pageerror', function (err) { reject(err.toString()) })
         page.on('console', function (msg) {
-          if (msg.type === 'error') {
+          if (msg.type() === 'error') {
             reject(JSON.stringify(msg))
           }
         })
