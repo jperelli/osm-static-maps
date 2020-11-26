@@ -35,6 +35,7 @@ class Browser {
   }
   async launch() {
     return puppeteer.launch({
+      ...process.env.CHROMIUM_PATH && { executablePath: process.env.CHROMIUM_PATH },
       args: ["--no-sandbox", "--disable-setuid-sandbox"]
     });
   }

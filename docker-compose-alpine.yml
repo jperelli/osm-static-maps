@@ -1,0 +1,14 @@
+version: "3.2"
+
+services:
+
+  osmsm:
+    build:
+      context: .
+      dockerfile: Dockerfile-alpine
+    environment: 
+      PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: 'true'
+      CHROMIUM_PATH: '/usr/bin/chromium-browser'
+    ports:
+      - 3000:3000
+    restart: unless-stopped
