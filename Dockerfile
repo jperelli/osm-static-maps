@@ -1,4 +1,13 @@
-FROM node:14.2
+FROM node:14.2 AS build
+
+WORKDIR /app
+
+COPY ./ ./
+
+RUN npm install --only=production
+
+
+FROM node:14.2 as release
 
 RUN \
     apt-get update \
@@ -21,7 +30,11 @@ RUN \
     /root/.cargo/bin/cargo install oxipng
 
 WORKDIR /app
+
+COPY --from=build /app ./
+
 EXPOSE 3000
-CMD [ "npm", "run", "installandstartdev" ]
+
+CMD [ "npm", "start" ]
 
 HEALTHCHECK CMD curl -f http://localhost:3000/health || exit 1
