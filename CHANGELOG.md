@@ -1,3 +1,9 @@
+# 3.9.1
+
+Maintenance
+
+ - Upgrade dependencies to latest versions
+
 # 3.9.0
 
 Read geojson from file or stdin
