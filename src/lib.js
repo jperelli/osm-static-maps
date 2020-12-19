@@ -48,7 +48,7 @@ class Browser {
   async getPage() {
     const browser = await this.getBrowser()
       // console.log("NEW PAGE");
-    return await browser.newPage()
+    return browser.newPage()
   }
 }
 const browser = new Browser();
@@ -72,6 +72,8 @@ function httpGet(url) {
     });
   });
 }
+
+process.on("warning", (e) => console.warn(e.stack));
 
 module.exports = function(options) {
   return new Promise(function(resolve, reject) {
