@@ -1,0 +1,31 @@
+FROM mhart/alpine-node:15 AS base
+
+RUN apk upgrade --no-cache -U && \
+    apk add --no-cache -t build-dependencies gcc g++ make zlib musl-dev libpng-dev nasm autoconf nss && \
+    apk add --no-cache chromium freetype freetype-dev harfbuzz ca-certificates ttf-freefont
+
+
+FROM base AS build
+
+WORKDIR /app
+
+COPY ./ ./
+
+RUN npm install --only=production
+
+
+FROM base AS release
+
+RUN apk add --no-cache --repository=http://dl-cdn.alpinelinux.org/alpine/edge/community rust cargo curl && \
+    cargo install oxipng && \
+    apk del build-dependencies
+
+WORKDIR /app
+
+COPY --from=build /app ./
+
+EXPOSE 3000
+
+CMD [ "npm", "start" ]
+
+HEALTHCHECK CMD curl -f http://localhost:3000/health || exit 1
