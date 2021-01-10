@@ -1,3 +1,9 @@
+# 3.10.2
+
+Support AWS functions
+
+ - Move dependencies to dev to conform the 50Mib limit
+
 # 3.10.1
 
 Hotfix
