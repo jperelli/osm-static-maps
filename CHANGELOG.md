@@ -1,3 +1,9 @@
+# 3.10.0
+
+Add support to vercel api functions
+
+ - Use chrome-aws-lambda as alternative to base puppeteer
+
 # 3.9.1
 
 Maintenance

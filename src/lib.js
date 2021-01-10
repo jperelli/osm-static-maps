@@ -2,10 +2,20 @@ const fs = require('fs');
 const http = require('http');
 const https = require("https");
 const Handlebars = require('handlebars');
-const puppeteer = require('puppeteer');
 const path = require('path');
 const child_process = require("child_process");
 
+let chrome = {};
+let puppeteer;
+
+if (process.env.AWS_LAMBDA_FUNCTION_VERSION) {
+  // running on the Vercel platform.
+  chrome = require("chrome-aws-lambda");
+  puppeteer = require("puppeteer-core");
+} else {
+  // running locally.
+  puppeteer = require("puppeteer");
+}
 
 const files = {
   leafletjs: fs.readFileSync(require.resolve('leaflet/dist/leaflet.js'), 'utf8'),
@@ -35,7 +45,11 @@ class Browser {
   }
   async launch() {
     return puppeteer.launch({
-      args: ["--no-sandbox", "--disable-setuid-sandbox"]
+      args: [...chrome.args, "--no-sandbox", "--disable-setuid-sandbox"],
+      defaultViewport: chrome.defaultViewport,
+      executablePath: await chrome.executablePath,
+      headless: true,
+      ignoreHTTPSErrors: true,
     });
   }
   async getBrowser() {
