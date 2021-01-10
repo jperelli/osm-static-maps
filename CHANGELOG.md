@@ -1,3 +1,9 @@
+# 3.10.3
+
+Support AWS functions hotfix
+
+ - Move dependencies right.
+
 # 3.10.2
 
 Support AWS functions
