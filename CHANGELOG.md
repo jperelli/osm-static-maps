@@ -1,3 +1,9 @@
+# 3.10.1
+
+Hotfix
+
+ - Fix broken local puppeteer
+
 # 3.10.0
 
 Add support to vercel api functions

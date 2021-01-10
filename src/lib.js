@@ -5,7 +5,7 @@ const Handlebars = require('handlebars');
 const path = require('path');
 const child_process = require("child_process");
 
-let chrome = {};
+let chrome = { args: [] };
 let puppeteer;
 
 if (process.env.AWS_LAMBDA_FUNCTION_VERSION) {

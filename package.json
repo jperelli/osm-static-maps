@@ -1,6 +1,6 @@
 {
   "name": "osm-static-maps",
-  "version": "3.10.0",
+  "version": "3.10.1",
   "description": "Create a static image of a map with the features you want",
   "author": "Julian Perelli",
   "contributors": [
