@@ -10,6 +10,13 @@ app.set("view options", { layout: false });
 app.use(express.json({ limit: "50mb" }));
 
 app.use((req, res, next) => {
+  if (process.env.HEADER_CHECK) {
+    const header = process.env.HEADER_CHECK.split(":");
+    if (req.headers[header[0]] !== header[1]) {
+      res.status(403).send("Forbidden, set correct header to access");
+      return;
+    }
+  }
   const ip = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
   const date = new Date().toISOString();
   const ref = req.header("Referer");
