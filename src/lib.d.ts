@@ -138,6 +138,6 @@ interface OsmStaticMapsOptions {
 }
 
 /** Renders a map controlled by the options passed and returns an image */
-function _default<T extends OsmStaticMapsOptions>(
+declare function _default<T extends OsmStaticMapsOptions>(
   options?: T
 ): Promise<T extends { renderToHtml: true } ? string : Buffer>;
