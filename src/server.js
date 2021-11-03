@@ -10,19 +10,26 @@ app.set("view options", { layout: false });
 app.use(express.json({ limit: "50mb" }));
 
 app.use((req, res, next) => {
-  if (process.env.HEADER_CHECK) {
-    const header = process.env.HEADER_CHECK.split(":");
-    if (req.headers[header[0]] !== header[1]) {
-      res.status(403).send("Forbidden, set correct header to access");
-      return;
-    }
-  }
-  const ip = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
+  const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
   const date = new Date().toISOString();
   const ref = req.header("Referer");
   const ua = req.header("user-agent");
   const url = req.originalUrl;
-  console.log(`[${date} - ${ip}] (${ref}) {${ua}} ${url}`);
+  const logLine = `[${date} - ${ip}] (${ref}) {${ua}} ${url}`;
+  if (process.env.HEADER_CHECK) {
+    const header = process.env.HEADER_CHECK.split(":");
+    if (req.headers[header[0]] !== header[1]) {
+      res
+        .status(403)
+        .send(
+          process.env.HEADER_CHECK_FAIL_MESSAGE ||
+            "Forbidden, set correct header to access"
+        );
+      console.log(`${logLine} FORBIDDEN, HEADER_CHECK FAILED`);
+      return;
+    }
+  }
+  console.log(logLine);
   next();
 });
 
