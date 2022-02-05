@@ -4,8 +4,6 @@ Openstreetmap static maps is a nodejs lib, CLI and server open source inspired o
 
 Here you have a [demo](http://osm-static-maps.herokuapp.com/?geojson=[{"type":"Feature","properties":{"party":"Republican"},"geometry":{"type":"Polygon","coordinates":[[[-104.05,48.99],[-97.22,48.98],[-96.58,45.94],[-104.03,45.94],[-104.05,48.99]]]}},{"type":"Feature","properties":{"party":"Democrat"},"geometry":{"type":"Polygon","coordinates":[[[-109.05,41.00],[-102.06,40.99],[-102.03,36.99],[-109.04,36.99],[-109.05,41.00]]]}}]&height=300&width=300 "Just what I wanted!"). Also a [dynamic version](http://osm-static-maps.herokuapp.com/dynamic?geojson=[{"type":"Feature","properties":{"party":"Republican"},"geometry":{"type":"Polygon","coordinates":[[[-104.05,48.99],[-97.22,48.98],[-96.58,45.94],[-104.03,45.94],[-104.05,48.99]]]}},{"type":"Feature","properties":{"party":"Democrat"},"geometry":{"type":"Polygon","coordinates":[[[-109.05,41.00],[-102.06,40.99],[-102.03,36.99],[-109.04,36.99],[-109.05,41.00]]]}}]&height=300&width=300 "Wow it gets even better!!") of the demo, for testing purposes.
 
-(heroku demo might be unstable because of too many requests being made to it, a real server costs money and we are not collecting any for this project yet)
-
 ## How to use
 
 ### 1. CLI
@@ -58,7 +56,7 @@ docker-compose up
 
 You can use the heroku-hosted alternative directly [here](http://osm-static-maps.herokuapp.com/ "Awesome!")
 
-heroku server might be unstable because of too many requests being made to it, a real server costs money and we are not collecting any for this project yet.
+We are currently in the cloud beta, contact me directly at jperelli+osmsm@gmail.com so I can give you access to the cloud service.
 
 ## API Reference
 
