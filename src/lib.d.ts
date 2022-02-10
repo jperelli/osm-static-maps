@@ -58,6 +58,12 @@ interface OsmStaticMapsOptions {
   tileserverUrl?: string;
 
   /**
+   * tileSubdomains of a tileserver
+   * @defaultValue `undefined`
+   */
+  tileSubdomains?: string[];
+
+  /**
    * url of a vector tile server (MVT style.json)
    * @defaultValue `undefined`
    */

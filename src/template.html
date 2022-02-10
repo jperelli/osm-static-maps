@@ -138,13 +138,24 @@
                 }).addTo(map);
             {{else}}
                 {{#if tileserverUrl}}
-                    L.tileLayer(
-                        '{{{tileserverUrl}}}',
-                        {
-                            maxZoom: maxZoom,
-                            fadeAnimation: false
-                        }
-                    ).addTo(map);
+                    {{#if tileSubdomains }}
+                        L.tileLayer(
+                            '{{{tileserverUrl}}}',
+                            {
+                                subdomains: {{{tileSubdomains}}},
+                                maxZoom: maxZoom,
+                                fadeAnimation: false
+                            }
+                        ).addTo(map);
+                    {{else}}
+                        L.tileLayer(
+                            '{{{tileserverUrl}}}',
+                            {
+                                maxZoom: maxZoom,
+                                fadeAnimation: false
+                            }
+                        ).addTo(map);
+                    {{/if}}
                 {{/if}}
             {{/if}}
 
