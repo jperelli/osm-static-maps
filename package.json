@@ -26,6 +26,7 @@
     "leaflet-polylinedecorator": "1.6.0",
     "mapbox-gl": "^1.13.0",
     "mapbox-gl-leaflet": "0.0.14",
+    "puppeteer-core": "^5.5.0",
     "puppeteer": "^5.5.0"
   },
   "engines": {
@@ -34,13 +35,14 @@
   "scripts": {
     "start": "node src/cli.js serve",
     "dev": "nodemon -e js,html src/cli.js serve",
-    "installandstartdev": "npm install && npm run dev"
+    "installandstartdev": "npm install && npm install puppeteer && npm run dev"
   },
   "main": "./src/lib.js",
   "bin": {
     "osmsm": "./src/cli.js"
   },
   "devDependencies": {
-    "nodemon": "2.0.6"
+    "nodemon": "2.0.6",
+    "puppeteer": "^5.5.0"
   }
 }
