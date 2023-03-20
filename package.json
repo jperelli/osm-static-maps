@@ -26,7 +26,8 @@
     "leaflet-polylinedecorator": "1.6.0",
     "mapbox-gl": "^1.13.0",
     "mapbox-gl-leaflet": "0.0.14",
-    "puppeteer-core": "^5.5.0"
+    "puppeteer-core": "^5.5.0",
+    "puppeteer": "^5.5.0"
   },
   "engines": {
     "node": ">=12"
