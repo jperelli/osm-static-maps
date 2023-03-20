@@ -8,14 +8,14 @@ const child_process = require("child_process");
 let chrome = { args: [] };
 let puppeteer;
 
-if (process.env.AWS_LAMBDA_FUNCTION_VERSION) {
+// if (process.env.AWS_LAMBDA_FUNCTION_VERSION) {
   // running on the Vercel platform.
   chrome = require("chrome-aws-lambda");
   puppeteer = require("puppeteer-core");
-} else {
-  // running locally.
-  puppeteer = require("puppeteer");
-}
+// } else {
+//   // running locally.
+//   puppeteer = require("puppeteer");
+// }
 
 const files = {
   leafletjs: fs.readFileSync(require.resolve('leaflet/dist/leaflet.js'), 'utf8'),
