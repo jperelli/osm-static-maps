@@ -48,7 +48,7 @@ class Browser {
       args: [...chrome.args, "--no-sandbox", "--disable-setuid-sandbox"],
       defaultViewport: chrome.defaultViewport,
       executablePath: await chrome.executablePath,
-      headless: true,
+      headless: new,
       ignoreHTTPSErrors: true,
     });
   }
