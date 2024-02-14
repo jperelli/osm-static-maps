@@ -110,6 +110,11 @@
                     },
                 });
                 geojsonlayer.addTo(map);
+                {{#if popup}}
+                    {{#isOnePoint geojson}}
+                        geojsonlayer.bindPopup('{{{ popup }}}').openPopup();
+                    {{/isOnePoint}}                
+                {{/if}}                         
                 map.fitBounds(geojsonlayer.getBounds(), {maxZoom: maxZoom});
             {{/if}}
 
