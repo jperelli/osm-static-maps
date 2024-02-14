@@ -2,6 +2,24 @@ const fs = require('fs');
 const http = require('http');
 const https = require("https");
 const Handlebars = require('handlebars');
+
+Handlebars.registerHelper('isOnePoint', function(jsonString, options) {
+  let obj;
+  try {
+    obj = JSON.parse(jsonString);
+  } catch (e) {
+    console.error('Error parsing JSON:', e);
+    return options.inverse(this); // Handle parse error or incorrect format
+  }
+  
+  // Check if the object is indeed an object, not an array, and has the required keys
+  if (typeof obj === 'object' && obj !== null && !Array.isArray(obj) && obj.type === "Point" && obj.coordinates) {
+    return options.fn(this); // Execute the block if condition is met
+  }
+  
+  return options.inverse(this); // Execute the else block if conditions are not met
+});
+
 const path = require('path');
 const child_process = require("child_process");
 
