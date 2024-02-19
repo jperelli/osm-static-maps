@@ -20,6 +20,12 @@
             height: 100%;
             width: 100%;
         }
+{{#if popup}} {{#isOnePoint geojson}}        
+.leaflet-marker-icon,
+.leaflet-marker-shadow {
+	display: none;
+	}        
+{{/isOnePoint}}  {{/if}}            
         </style>
         <script>
         //leafletjs//
