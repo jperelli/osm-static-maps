@@ -99,6 +99,10 @@ program
     "throw error if there is any console.error(...) when rendering the map image",
     false
   )
+  .option(
+    "-P, --popup <string>", 
+    "HTML or text content of popup"
+  )  
   .action(function(cmd) {
     const opts = cmd.opts();
 

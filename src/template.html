@@ -6,6 +6,9 @@
         .leaflet-fade-anim, .leaflet-zoom-anim {
             transition: none;
         }
+        .leaflet-popup-close-button {
+            display: none;
+        }            
         body {
             height: 100%;
             width: 100%;
@@ -17,6 +20,12 @@
             height: 100%;
             width: 100%;
         }
+{{#if popup}} {{#isOnePoint geojson}}        
+.leaflet-marker-icon,
+.leaflet-marker-shadow {
+	display: none;
+	}        
+{{/isOnePoint}}  {{/if}}            
         </style>
         <script>
         //leafletjs//
@@ -110,6 +119,11 @@
                     },
                 });
                 geojsonlayer.addTo(map);
+                {{#if popup}}
+                    {{#isOnePoint geojson}}
+                        geojsonlayer.bindPopup('{{{ popup }}}').openPopup();
+                    {{/isOnePoint}}                
+                {{/if}}                         
                 map.fitBounds(geojsonlayer.getBounds(), {maxZoom: maxZoom});
             {{/if}}
 
