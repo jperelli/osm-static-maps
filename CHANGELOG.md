@@ -1,3 +1,9 @@
+# 3.11.1
+
+Better dependencies pinning
+
+ - Uningnored package-lock.json to better pin dependencies
+
 # 3.11.0
 
 Improve speed
