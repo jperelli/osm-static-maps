@@ -1,3 +1,16 @@
+# 3.11.0
+
+Improve speed
+
+ - Speed up results:
+    - Add cache to resolve faster tilesets in sample-server
+    - Correct default tile url to use https to avoid redirection
+    - Remove unnecessary network wait. Change it to wait for map load event
+    - Remove tile fade-in effect to be able to resolve earlier
+ - Upgrade all dependencies to latest versions
+ - Removed not-working heroku demo
+ - Removed validation that broke the /dynamic endpoint
+
 # 3.10.3
 
 Support AWS functions hotfix

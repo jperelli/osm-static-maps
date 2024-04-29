@@ -1,6 +1,6 @@
 {
   "name": "osm-static-maps",
-  "version": "3.10.3",
+  "version": "3.11.0",
   "description": "Create a static image of a map with the features you want",
   "author": "Julian Perelli",
   "contributors": [
@@ -15,18 +15,18 @@
     "url": "http://github.com/jperelli/osm-static-maps.git"
   },
   "dependencies": {
-    "chrome-aws-lambda": "^5.5.0",
-    "commander": "^6.2.1",
-    "express": "4.17.1",
-    "handlebars": "4.7.6",
-    "imagemin": "7.0.1",
+    "chrome-aws-lambda": "^10.1.0",
+    "commander": "^12.0.0",
+    "express": "^4.19.2",
+    "handlebars": "^4.7.8",
+    "imagemin": "^8.0.1",
     "imagemin-jpegtran": "7.0.0",
     "imagemin-optipng": "8.0.0",
-    "leaflet": "^1.7.1",
+    "leaflet": "^1.9.4",
     "leaflet-polylinedecorator": "1.6.0",
     "mapbox-gl": "^1.13.0",
     "mapbox-gl-leaflet": "0.0.14",
-    "puppeteer-core": "^5.5.0"
+    "puppeteer-core": "^22.7.1"
   },
   "engines": {
     "node": ">=12"
@@ -41,7 +41,10 @@
     "osmsm": "./src/cli.js"
   },
   "devDependencies": {
-    "nodemon": "2.0.6",
-    "puppeteer": "^5.5.0"
+    "nodemon": "^3.1.0",
+    "puppeteer": "^22.7.1"
+  },
+  "overrides": {
+    "puppeteer-core": "^22.7.1"
   }
 }

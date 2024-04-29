@@ -3,6 +3,9 @@
     <head>
         <style>
         //leafletcss//
+        .leaflet-tile {
+            opacity: 1 !important;
+        }
         .leaflet-fade-anim, .leaflet-zoom-anim {
             transition: none;
         }
@@ -132,24 +135,27 @@
             {{/if}}
 
             {{#if vectorserverUrl}}
-                L.mapboxGL({
+                var backgroundLayer = L.mapboxGL({
                     accessToken: '{{ vectorserverToken }}',
                     style: '{{{ vectorserverUrl }}}'
-                }).addTo(map);
+                });
             {{else}}
                 {{#if tileserverUrl}}
-                    L.tileLayer(
+                    var backgroundLayer = L.tileLayer(
                         '{{{tileserverUrl}}}',
                         {
                             maxZoom: maxZoom,
                             fadeAnimation: false
                         }
-                    ).addTo(map);
+                    );
                 {{/if}}
             {{/if}}
+            backgroundLayer.addTo(map);
+            backgroundLayer.on('load', function() {
+                window.mapRendered = true;
+            });
 
 
         </script>
     </body>
 </html>
-

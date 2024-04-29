@@ -1,4 +1,4 @@
-FROM node:14.2
+FROM node:22.0
 
 RUN \
     apt-get update \
@@ -11,6 +11,8 @@ RUN \
         libasound2 \
         libatk-bridge2.0-0 \
         libgtk-3-0 \
+        libdrm2 \
+        libgbm1 \
         fonts-wqy-zenhei \
     && \
     rm -rf /var/lib/apt/lists/*

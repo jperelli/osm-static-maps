@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const program = require("commander");
+const { program } = require("commander");
 const osmsm = require("./lib");
 const package = require("../package.json");
 

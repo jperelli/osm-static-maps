@@ -44,10 +44,11 @@ class Browser {
     this.browser = null;
   }
   async launch() {
+    const executablePath = await chrome.executablePath
     return puppeteer.launch({
       args: [...chrome.args, "--no-sandbox", "--disable-setuid-sandbox"],
       defaultViewport: chrome.defaultViewport,
-      executablePath: await chrome.executablePath,
+      executablePath,
       headless: true,
       ignoreHTTPSErrors: true,
     });
@@ -57,7 +58,6 @@ class Browser {
       throw new Error('osm-static-maps is not ready, please wait a few seconds')
     }
     if (!this.browser || !this.browser.isConnected()) {
-      // console.log('NEW BROWSER')
       this.openingBrowser = true;
       try {
         this.browser = await this.launch();
@@ -72,7 +72,6 @@ class Browser {
   }
   async getPage() {
     const browser = await this.getBrowser()
-      // console.log("NEW PAGE");
     return browser.newPage()
   }
 }
@@ -100,8 +99,51 @@ function httpGet(url) {
 
 process.on("warning", (e) => console.warn(e.stack));
 
+
+// add network cache to cache tiles
+const cache = {};
+async function configCache(page) {
+  await page.setRequestInterception(true);
+
+  page.on('request', async (request) => {
+      const url = request.url();
+      if (cache[url] && cache[url].expires > Date.now()) {
+          await request.respond(cache[url]);
+          return;
+      }
+      request.continue();
+  });
+  
+  page.on('response', async (response) => {
+      const url = response.url();
+      const headers = response.headers();
+      const cacheControl = headers['cache-control'] || '';
+      const maxAgeMatch = cacheControl.match(/max-age=(\d+)/);
+      const maxAge = maxAgeMatch && maxAgeMatch.length > 1 ? parseInt(maxAgeMatch[1], 10) : 0;
+      if (maxAge) {
+          if (cache[url] && cache[url].expires > Date.now()) return;
+  
+          let buffer;
+          try {
+              buffer = await response.buffer();
+          } catch (error) {
+              // some responses do not contain buffer and do not need to be catched
+              return;
+          }
+  
+          cache[url] = {
+              status: response.status(),
+              headers: response.headers(),
+              body: buffer,
+              expires: Date.now() + (maxAge * 1000),
+          };
+      }
+  });
+}
+
 module.exports = function(options) {
   return new Promise(function(resolve, reject) {
+    // TODO: validate options to avoid template injection
     options = options || {};
     options.geojson = (options.geojson && (typeof options.geojson === 'string' ? options.geojson : JSON.stringify(options.geojson))) || '';
     options.geojsonfile = options.geojsonfile || '';
@@ -111,7 +153,7 @@ module.exports = function(options) {
     options.zoom = options.zoom || '';
     options.maxZoom = options.maxZoom || (options.vectorserverUrl ? 20 : 17);
     options.attribution = options.attribution || 'osm-static-maps | © OpenStreetMap contributors';
-    options.tileserverUrl = options.tileserverUrl || 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+    options.tileserverUrl = options.tileserverUrl || 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
     options.vectorserverUrl = options.vectorserverUrl || '';
     options.vectorserverToken = options.vectorserverToken || 'no-token';
     options.imagemin = options.imagemin || false;
@@ -149,19 +191,24 @@ module.exports = function(options) {
       }
 
       const page = await browser.getPage();
+      await configCache(page);
       try {
         page.on('error', function (err) { reject(err.toString()) })
         page.on('pageerror', function (err) { reject(err.toString()) })
-        page.on('console', function (msg) {
-          if (options.haltOnConsoleError && msg.type() === "error") {
-            reject(JSON.stringify(msg));
-          }
-        })
+        if (options.haltOnConsoleError) {
+          page.on('console', function (msg) {
+            if (msg.type() === "error") {
+              reject(JSON.stringify(msg));
+            }
+          })
+        }
         await page.setViewport({
           width: Number(options.width),
           height: Number(options.height)
         });
-        await page.setContent(html, { waitUntil: 'networkidle0', timeout: Number(options.timeout) });
+
+        await page.setContent(html);
+        await page.waitForFunction(() => window.mapRendered === true, { timeout: Number(options.timeout) });
 
         let imageBinary = await page.screenshot({
           type: options.type || 'png',
@@ -205,11 +252,10 @@ module.exports = function(options) {
       }
       catch(e) {
         page.close();
-        // console.log("PAGE CLOSED with err" + e);
+        console.log("PAGE CLOSED with err" + e);
         throw(e);
       }
       page.close();
-      // console.log("PAGE CLOSED ok");
 
     })().catch(reject)
   });
