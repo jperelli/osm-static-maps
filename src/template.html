@@ -177,6 +177,7 @@
                     console.log('Map rendering confirmed, tiles loaded and background layer present.');
                 } else {
                     console.error('Map rendering issue detected, tiles or background layer not loaded correctly.');
+                    window.mapRendered = false; // Set to false if the map has not rendered correctly
                 }
             }).on('error', function(e) {
                 console.error('backgroundLayer error event fired', e);

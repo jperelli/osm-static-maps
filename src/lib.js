@@ -1,4 +1,4 @@
-/* global Buffer */
+/* global clearTimeout, setInterval, clearInterval, Buffer */
 const fs = require('fs');
 const http = require('http');
 const https = require('https');
@@ -177,7 +177,7 @@ async function configCache(page) {
 
 // Validation function to check if a value is a valid GeoJSON object or string
 function isValidGeojson(value) {
-  console.log(`Validating GeoJSON: ${JSON.stringify(value)}`); // Log the value being validated
+  console.log(`Validating GeoJSON value: ${JSON.stringify(value)}, Type: ${typeof value}`); // Log the value and type being validated
   if (typeof value === 'string') {
     if (value.trim().startsWith('{') && value.trim().endsWith('}')) {
       try {
@@ -187,11 +187,11 @@ function isValidGeojson(value) {
         console.log(`Parsed GeoJSON string is valid: ${isValid}`); // Log the result of the validation
         return isValid;
       } catch (error) {
-        console.error(`Failed to parse GeoJSON string: ${error.message}`); // Log the parsing error
+        console.error(`Failed to parse GeoJSON string: ${error.message}, Value: ${JSON.stringify(value)}`); // Log the parsing error with the value
         return false; // Not a valid JSON string
       }
     } else {
-      console.error('GeoJSON validation failed: value is not a valid JSON string'); // Log the invalid string error
+      console.error(`GeoJSON validation failed: value is not a valid JSON string, Value: ${JSON.stringify(value)}`); // Log the invalid string error with the value
       return false; // Not a valid JSON string
     }
   } else if (typeof value === 'object' && value !== null) {
@@ -200,13 +200,13 @@ function isValidGeojson(value) {
     console.log(`GeoJSON object is valid: ${isValid}`); // Log the result of the validation
     return isValid;
   }
-  console.error('GeoJSON validation failed: value is not a string or object'); // Log the type error
+  console.error(`GeoJSON validation failed: value is not a string or object, Value: ${JSON.stringify(value)}`); // Log the type error with the value
   return false; // Not a valid type for GeoJSON
 }
 
 // Helper function to check if an object is a valid GeoJSON structure
 function isValidGeojsonObject(obj) {
-  console.log(`Validating GeoJSON object structure: ${JSON.stringify(obj)}`);
+  console.log(`Validating GeoJSON object structure: ${JSON.stringify(obj)}`); // Log the object structure being validated
   if (typeof obj !== 'object' || obj === null) {
     console.error('GeoJSON object validation failed: value is not an object or is null');
     return false;
@@ -220,7 +220,7 @@ function isValidGeojsonObject(obj) {
     return false;
   }
   for (const feature of obj.features) {
-    console.log(`Validating feature: ${JSON.stringify(feature)}`);
+    console.log(`Validating feature: ${JSON.stringify(feature)}`); // Log each feature being validated
     if (typeof feature !== 'object' || feature === null || feature.type !== 'Feature') {
       console.error('GeoJSON object validation failed: feature is not an object, is null, or type is not Feature');
       return false;
@@ -238,9 +238,11 @@ function isValidGeojsonObject(obj) {
       return false;
     }
   }
-  console.log('GeoJSON object is valid');
+  console.log('GeoJSON object structure is valid: true'); // Log the successful validation
   return true;
 }
+
+// Helper function to check if an object is a valid GeoJSON structure
 
 // Validation helper functions
 function isString(value) {
@@ -358,26 +360,33 @@ module.exports = function(options) {
             const timeoutId = setTimeout(() => {
               console.log('Map rendering timed out');
               reject(new Error('Map not rendered within the specified timeout.'));
-            }, 40000); // 40 seconds timeout
+            }, 60000); // 60 seconds timeout
 
             // The actual map rendering completion event is handled in the template.html
             if (window.mapRendered === true) {
               console.log('Map is already rendered');
-              // eslint-disable-next-line no-undef
               clearTimeout(timeoutId);
               resolve(true);
             } else {
               // Continuously check if the map has been rendered
-              // eslint-disable-next-line no-undef
               const checkRendered = setInterval(() => {
                 console.log('Checking if map is rendered:', window.mapRendered);
                 if (window.mapRendered === true) {
                   console.log('Map has been rendered');
-                  // eslint-disable-next-line no-undef
                   clearTimeout(timeoutId);
-                  // eslint-disable-next-line no-undef
                   clearInterval(checkRendered);
                   resolve(true);
+                } else {
+                  // Detailed logging to diagnose rendering issues
+                  console.log('Map is not yet rendered, current state:', window.mapRendered);
+                  // Log the number of tiles still loading (if this information is available)
+                  if (window.map && window.map._tilesToLoad !== undefined) {
+                    console.log(`Tiles still loading: ${window.map._tilesToLoad}`);
+                  }
+                  // Log if the background layer has been added to the map
+                  if (window.map && window.map.hasLayer && window.backgroundLayer) {
+                    console.log(`Background layer added to map: ${window.map.hasLayer(window.backgroundLayer)}`);
+                  }
                 }
               }, 100); // Check every 100ms
             }
