@@ -172,6 +172,12 @@
                 });
                 // Log the bounds of the map to confirm it is set correctly
                 console.log('Map bounds after load event:', map.getBounds().toBBoxString());
+                // Additional check to confirm the map is rendered
+                if (map._tilesToLoad === 0 && map.hasLayer(backgroundLayer)) {
+                    console.log('Map rendering confirmed, tiles loaded and background layer present.');
+                } else {
+                    console.error('Map rendering issue detected, tiles or background layer not loaded correctly.');
+                }
             }).on('error', function(e) {
                 console.error('backgroundLayer error event fired', e);
                 // Log the error to understand why the background layer failed to load
