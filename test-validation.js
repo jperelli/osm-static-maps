@@ -3,7 +3,18 @@ const osmStaticMaps = require('./src/lib.js');
 console.log('Starting test-validation script.');
 
 const options = {
-  geojson: JSON.stringify({ type: 'FeatureCollection', features: [] }),
+  // Providing a simple valid GeoJSON object for testing purposes
+  geojson: JSON.stringify({
+    type: 'FeatureCollection',
+    features: [{
+      type: 'Feature',
+      properties: {},
+      geometry: {
+        type: 'Point',
+        coordinates: [2.2943506, 48.8588443] // Coordinates for Eiffel Tower
+      }
+    }]
+  }),
   height: 600,
   width: 800,
   center: '48.8588443,2.2943506',

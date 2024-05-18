@@ -177,36 +177,33 @@ async function configCache(page) {
 
 // Validation function to check if a value is a valid GeoJSON object or string
 function isValidGeojson(value) {
-  console.log('isValidGeojson called with value:', value); // Log the input value
-  console.log('Type of value:', typeof value); // Log the type of the value
   if (typeof value === 'string') {
     try {
       const parsed = JSON.parse(value);
-      console.log('Parsed GeoJSON object:', parsed); // Log the parsed object
-      const isValid = isValidGeojsonObject(parsed);
-      console.log('Is parsed object valid GeoJSON:', isValid); // Log the result of the validation
-      return isValid;
-    } catch (e) {
-      console.log('Failed to parse value as JSON:', value); // Log the failed parsing
-      console.log('Parsing error:', e.message); // Log the parsing error message
+      return isValidGeojsonObject(parsed);
+    } catch {
       return false; // Not a valid JSON string
     }
   } else if (typeof value === 'object' && value !== null) {
-    const isValid = isValidGeojsonObject(value);
-    console.log('Is object valid GeoJSON:', isValid, 'Object:', value); // Log the result of the validation
-    return isValid;
+    return isValidGeojsonObject(value);
   }
-  console.log('Value is not a valid type for GeoJSON:', value); // Log the invalid type
   return false; // Not a valid type for GeoJSON
 }
 
 // Helper function to check if an object is a valid GeoJSON structure
 function isValidGeojsonObject(obj) {
-  const isValid = Object.prototype.hasOwnProperty.call(obj, 'type') &&
-                  Object.prototype.hasOwnProperty.call(obj, 'features') &&
-                  obj.type === 'FeatureCollection' && Array.isArray(obj.features);
-  console.log('GeoJSON object is valid:', isValid, 'Object:', obj); // Log the validation result
-  return isValid;
+  if (typeof obj !== 'object' || obj === null || !Array.isArray(obj.features)) {
+    return false;
+  }
+  const hasValidType = obj.type === 'FeatureCollection';
+  const hasValidFeatures = obj.features.every(feature => {
+    return feature.type === 'Feature' &&
+           feature.geometry &&
+           typeof feature.geometry === 'object' &&
+           feature.geometry.type &&
+           Array.isArray(feature.geometry.coordinates);
+  });
+  return hasValidType && hasValidFeatures;
 }
 
 // Validation helper functions

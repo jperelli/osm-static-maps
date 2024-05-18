@@ -154,11 +154,16 @@
                 {{/if}}
             {{/if}}
             console.log('Adding backgroundLayer to map');
-            backgroundLayer.addTo(map);
-            backgroundLayer.on('load', function() {
+            backgroundLayer.addTo(map).on('load', function() {
                 console.log('backgroundLayer load event fired');
                 window.mapRendered = true;
                 console.log('window.mapRendered set to:', window.mapRendered);
+                // Additional logging to check if tiles are loaded
+                console.log('Tiles loaded:', map._tilesToLoad || 'No tiles to load info');
+            }).on('error', function(e) {
+                console.error('backgroundLayer error event fired', e);
+                // Additional logging to capture error details
+                console.log('Error details:', e.message || e);
             });
             console.log('backgroundLayer load event listener added');
 
