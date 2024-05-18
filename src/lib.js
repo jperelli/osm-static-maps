@@ -265,6 +265,7 @@ function hasTemplateInjection(value) {
 }
 
 module.exports = function(options) {
+  console.log('Received options for validation:', options); // Log the entire options object
   options = options || {};
 
   // Define default values and validation functions for options
