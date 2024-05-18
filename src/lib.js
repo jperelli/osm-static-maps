@@ -78,12 +78,44 @@ class Browser {
 }
 const browser = new Browser();
 
+/* global URL */
+
+/**
+ * Validates the given URL to prevent SSRF attacks.
+ * @param {string} url - The URL to validate.
+ * @param {string[]} [allowlist] - Optional list of allowed domains.
+ * @returns {boolean} - True if the URL is valid, false otherwise.
+ */
+function isValidUrl(url, allowlist) {
+  try {
+    const urlObj = new URL(url);
+    // Check if the protocol is either http or https
+    if (!['http:', 'https:'].includes(urlObj.protocol)) {
+      return false;
+    }
+    // If an allowlist is provided, check if the domain is in the allowlist
+    if (Array.isArray(allowlist) && !allowlist.includes(urlObj.hostname)) {
+      return false;
+    }
+    // Additional checks can be added here if needed
+    return true;
+  } catch (e) {
+    // If URL parsing fails, the URL is not valid
+    console.error(`URL parsing failed: ${e.message}`);
+    return false;
+  }
+}
 
 function httpGet(url) {
   // from https://stackoverflow.com/a/41471647/912450
   const httpx = url.startsWith('https') ? https : http;
   return new Promise((resolve, reject) => {
-    let req = httpx.get(url, (res) => {
+    // Validate the URL to prevent SSRF attacks
+    if (!isValidUrl(url)) {
+      reject(new Error('Invalid URL: URL is not allowed'));
+      return;
+    }
+    let req = httpx.get(url, { timeout: 5000 }, (res) => { // Set a timeout of 5 seconds
       if (res.statusCode !== 200) {
         reject(`Error ${res.statusCode} trying to get geojson file from ${url}`);
       }
@@ -94,6 +126,10 @@ function httpGet(url) {
     });
     req.on('error', (err) => {
       reject(err);
+    });
+    req.on('timeout', () => {
+      req.abort();
+      reject(new Error('Request timed out'));
     });
   });
 }
