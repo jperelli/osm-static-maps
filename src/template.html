@@ -2,7 +2,7 @@
 <html style="height:100%;width:100%;margin:0;padding:0">
     <head>
         <style>
-        //leafletcss//
+        <!-- leafletcss -->
         .leaflet-tile {
             opacity: 1 !important;
         }
@@ -22,7 +22,8 @@
         }
         </style>
         <script>
-        //leafletjs//
+        <!-- leafletjs -->
+        <!-- Handlebars conditions for arrows -->
         {{#if arrows}}
         //leafletpolylinedecorator//
         {{/if}}
@@ -30,11 +31,11 @@
 
         {{#if vectorserverUrl}}
             <style>
-            //mapboxcss//
+            <!-- mapboxcss -->
             </style>
             <script>
-            //mapboxjs//
-            //leafletmapboxjs//
+            <!-- mapboxjs -->
+            <!-- leafletmapboxjs -->
             </script>
         {{/if}}
 
@@ -162,22 +163,26 @@
                 console.log('Tiles loaded:', map._tilesToLoad || 'No tiles to load info');
                 // Confirming that the load event listener is executed
                 console.log('Load event listener executed successfully.');
+                // Log the state of the map and backgroundLayer after load event
+                console.log('State of map after backgroundLayer load event:', {
+                    hasLayer: map.hasLayer(backgroundLayer),
+                    isLoading: map.isLoading(),
+                    tilesToLoad: map._tilesToLoad,
+                    tileLayers: map._tileLayers
+                });
+                // Log the bounds of the map to confirm it is set correctly
+                console.log('Map bounds after load event:', map.getBounds().toBBoxString());
             }).on('error', function(e) {
                 console.error('backgroundLayer error event fired', e);
                 // Log the error to understand why the background layer failed to load
                 console.error('Background layer failed to load with error:', e.message || e);
                 // Additional logging to capture error details
                 console.log('Error details:', e.message || e);
+                // Set window.mapRendered to false to indicate the map has not rendered correctly
+                window.mapRendered = false;
+                console.log('window.mapRendered set to:', window.mapRendered);
             });
             console.log('backgroundLayer load and error event listeners added');
-            // Additional logging to check the state of the map and backgroundLayer
-            console.log('Map state after backgroundLayer added:', {
-                hasLayer: map.hasLayer(backgroundLayer),
-                isLoading: map.isLoading(),
-                tilesToLoad: map._tilesToLoad,
-                tileLayers: map._tileLayers
-            });
-
         </script>
     </body>
 </html>
