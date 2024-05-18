@@ -101,6 +101,8 @@ Similarly, other parameters such as `height`, `width`, `zoom`, and `markerIconOp
 
 Please ensure that all parameters passed to the library, CLI, or server adhere to the expected formats as described in the API Reference section above. This will help prevent common errors and ensure a smooth map rendering experience.
 
+In addition to parameter validation, the service now includes rate limiting to prevent abuse and ensure fair usage. Each IP address is limited to 100 requests every 15 minutes. Furthermore, to protect against cross-site scripting (XSS) attacks, all user input is sanitized before being processed. These security measures are in place to provide a safer and more reliable service for all users.
+
 ## Design considerations & architecture
 
 [Read the blogpost](https://jperelli.com.ar/project/2019/10/01/osm-static-maps/) on the creation of this library and how it works internally
