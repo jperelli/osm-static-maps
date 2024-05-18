@@ -181,7 +181,7 @@ function isValidGeojson(value) {
     try {
       const parsed = JSON.parse(value);
       return isValidGeojsonObject(parsed);
-    } catch (e) {
+    } catch {
       return false; // Not a valid JSON string
     }
   } else if (typeof value === 'object' && value !== null) {
@@ -192,27 +192,30 @@ function isValidGeojson(value) {
 
 // Helper function to check if an object is a valid GeoJSON structure
 function isValidGeojsonObject(obj) {
-  console.log(`Validating GeoJSON object: ${JSON.stringify(obj)}, Type: ${typeof obj}`); // Log the object and type being validated
   if (typeof obj !== 'object' || obj === null) {
-    console.error('GeoJSON object is not valid: Not an object or is null'); // Log the structure error
+    return false;
+  }
+  if (obj.type !== 'FeatureCollection') {
     return false;
   }
   if (!Array.isArray(obj.features)) {
-    console.error('GeoJSON object is not valid: Missing or invalid features array'); // Log the structure error
     return false;
   }
-  const hasValidType = obj.type === 'FeatureCollection';
-  const hasValidFeatures = obj.features.every(feature => {
-    const isValidFeature = feature.type === 'Feature' &&
-           feature.geometry &&
-           typeof feature.geometry === 'object' &&
-           feature.geometry.type &&
-           Array.isArray(feature.geometry.coordinates);
-    return isValidFeature;
-  });
-  const isValid = hasValidType && hasValidFeatures;
-  console.log(`GeoJSON object structure is valid: ${isValid}`); // Log the result of the structure validation
-  return isValid;
+  for (const feature of obj.features) {
+    if (typeof feature !== 'object' || feature === null || feature.type !== 'Feature') {
+      return false;
+    }
+    if (!feature.geometry || typeof feature.geometry !== 'object' || feature.geometry === null) {
+      return false;
+    }
+    if (feature.geometry.type !== 'Point' && feature.geometry.type !== 'LineString' && feature.geometry.type !== 'Polygon') {
+      return false;
+    }
+    if (!Array.isArray(feature.geometry.coordinates)) {
+      return false;
+    }
+  }
+  return true;
 }
 
 // Validation helper functions
@@ -271,6 +274,7 @@ module.exports = function(options) {
     }
     // Validate the geojson parameter separately to provide a more detailed error message
     if (key === 'geojson' && !config.validate(options[key])) {
+      console.error(`GeoJSON validation failed for value: ${options[key]}`); // Log the value that failed validation
       throw new Error(`Invalid ${key} parameter: the provided value is not a valid GeoJSON object or string.`);
     } else if (key !== 'geojson' && !config.validate(options[key])) {
       throw new Error(`Invalid ${key} parameter: the provided value does not meet the expected type or format.`);
