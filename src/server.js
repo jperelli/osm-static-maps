@@ -98,9 +98,10 @@ const handler = (res, params, reqDetails) => {
   osmsm(params)
     .then((data) => res.end(data))
     .catch((err) => {
-      const logError = `Error in osmsm: ${err}\n`; // Log the error from osmsm
+      const sanitizedErrorMessage = xss(err.toString());
+      const logError = `Error in osmsm: ${sanitizedErrorMessage}\n`; // Log the sanitized error message
       logStream.write(logError);
-      res.status(500).end(err.toString());
+      res.status(500).end(sanitizedErrorMessage); // Send the sanitized error message to the client
     });
 };
 
