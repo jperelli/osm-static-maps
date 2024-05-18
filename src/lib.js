@@ -212,12 +212,12 @@ function isValidGeojsonObject(obj) {
     console.error('GeoJSON object validation failed: value is not an object or is null');
     return false;
   }
-  console.log(`Checking if object type is 'FeatureCollection'.`);
+  console.log('Checking if object type is \'FeatureCollection\'.');
   if (obj.type !== 'FeatureCollection') {
     console.error('GeoJSON object validation failed: type is not FeatureCollection');
     return false;
   }
-  console.log(`Checking if 'features' property is an array.`);
+  console.log('Checking if \'features\' property is an array.');
   if (!Array.isArray(obj.features)) {
     console.error('GeoJSON object validation failed: features is not an array');
     return false;
@@ -228,17 +228,17 @@ function isValidGeojsonObject(obj) {
       console.error('GeoJSON object validation failed: feature is not an object, is null, or type is not Feature');
       return false;
     }
-    console.log(`Checking if 'geometry' property is an object and not null.`);
+    console.log('Checking if \'geometry\' property is an object and not null.');
     if (!feature.geometry || typeof feature.geometry !== 'object' || feature.geometry === null) {
       console.error('GeoJSON object validation failed: geometry is not an object or is null');
       return false;
     }
-    console.log(`Checking if 'geometry.type' is one of the allowed types.`);
+    console.log('Checking if \'geometry.type\' is one of the allowed types.');
     if (feature.geometry.type !== 'Point' && feature.geometry.type !== 'LineString' && feature.geometry.type !== 'Polygon') {
       console.error(`GeoJSON object validation failed: geometry type is not Point, LineString, or Polygon, but ${feature.geometry.type}`);
       return false;
     }
-    console.log(`Checking if 'geometry.coordinates' is an array.`);
+    console.log('Checking if \'geometry.coordinates\' is an array.');
     if (!Array.isArray(feature.geometry.coordinates)) {
       console.error('GeoJSON object validation failed: coordinates is not an array');
       return false;
