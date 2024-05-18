@@ -135,12 +135,15 @@
             {{/if}}
 
             {{#if vectorserverUrl}}
+                console.log('Initializing map with vector server URL');
                 var backgroundLayer = L.mapboxGL({
                     accessToken: '{{ vectorserverToken }}',
                     style: '{{{ vectorserverUrl }}}'
                 });
             {{else}}
+                console.log('Initializing map with tile server URL');
                 {{#if tileserverUrl}}
+                    console.log('Creating tileLayer with URL:', '{{{tileserverUrl}}}');
                     var backgroundLayer = L.tileLayer(
                         '{{{tileserverUrl}}}',
                         {
@@ -150,11 +153,14 @@
                     );
                 {{/if}}
             {{/if}}
+            console.log('Adding backgroundLayer to map');
             backgroundLayer.addTo(map);
             backgroundLayer.on('load', function() {
+                console.log('backgroundLayer load event fired');
                 window.mapRendered = true;
+                console.log('window.mapRendered set to:', window.mapRendered);
             });
-
+            console.log('backgroundLayer load event listener added');
 
         </script>
     </body>

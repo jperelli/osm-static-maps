@@ -1,7 +1,9 @@
 const osmStaticMaps = require('./src/lib.js');
 
+console.log('Starting test-validation script.');
+
 const options = {
-  geojson: { type: 'FeatureCollection', features: [] },
+  geojson: JSON.stringify({ type: 'FeatureCollection', features: [] }),
   height: 600,
   width: 800,
   center: '48.8588443,2.2943506',
@@ -21,4 +23,16 @@ const options = {
   haltOnConsoleError: false
 };
 
-osmStaticMaps(options).then(console.log).catch(console.error);
+console.log('Options object created:', options);
+
+osmStaticMaps(options)
+  .then(result => {
+    console.log('osmStaticMaps function executed successfully.');
+    console.log('Result:', result);
+  })
+  .catch(error => {
+    console.error('Error caught in test-validation script:');
+    console.error(error);
+  });
+
+console.log('test-validation script finished.');
