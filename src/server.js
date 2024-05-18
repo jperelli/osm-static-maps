@@ -1,6 +1,6 @@
 const express = require('express'),
   http = require('http'),
-  osmsm = require('./lib.js');
+  { main: osmsm, isValidGeojson } = require('./lib.js');
 const fs = require('fs');
 
 const app = express();
@@ -67,7 +67,7 @@ const handler = (res, params, reqDetails) => {
     try {
       const parsedGeojson = JSON.parse(params.geojson);
       // Validate the parsed GeoJSON object before proceeding
-      if (!osmsm.isValidGeojson(parsedGeojson)) {
+      if (!isValidGeojson(parsedGeojson)) {
         throw new Error('Parsed GeoJSON object is not valid.');
       }
       logStream.write(`Parsed GeoJSON parameter: ${JSON.stringify(parsedGeojson)}\n`);
