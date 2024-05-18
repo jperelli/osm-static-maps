@@ -177,28 +177,22 @@ async function configCache(page) {
 
 // Validation function to check if a value is a valid GeoJSON object or string
 function isValidGeojson(value) {
-  console.log('isValidGeojson called with value:', JSON.stringify(value)); // Log the value being validated
   if (typeof value === 'string') {
     try {
       const parsed = JSON.parse(value);
-      console.log('Parsed GeoJSON:', JSON.stringify(parsed)); // Log the parsed GeoJSON object
       return isValidGeojsonObject(parsed);
-    } catch (e) {
-      console.error('Failed to parse GeoJSON string:', e); // Log the error if parsing fails
+    } catch {
       return false; // Not a valid JSON string
     }
   } else if (typeof value === 'object' && value !== null) {
     return isValidGeojsonObject(value);
   }
-  console.error('Invalid GeoJSON type:', typeof value); // Log the type if it's not a string or object
   return false; // Not a valid type for GeoJSON
 }
 
 // Helper function to check if an object is a valid GeoJSON structure
 function isValidGeojsonObject(obj) {
-  console.log('isValidGeojsonObject called with object:', JSON.stringify(obj)); // Log the object being validated
   if (typeof obj !== 'object' || obj === null || !Array.isArray(obj.features)) {
-    console.error('Invalid GeoJSON object structure:', JSON.stringify(obj)); // Log the invalid structure
     return false;
   }
   const hasValidType = obj.type === 'FeatureCollection';
@@ -208,9 +202,6 @@ function isValidGeojsonObject(obj) {
            typeof feature.geometry === 'object' &&
            feature.geometry.type &&
            Array.isArray(feature.geometry.coordinates);
-    if (!isValidFeature) {
-      console.error('Invalid GeoJSON feature:', JSON.stringify(feature)); // Log the invalid feature
-    }
     return isValidFeature;
   });
   return hasValidType && hasValidFeatures;
