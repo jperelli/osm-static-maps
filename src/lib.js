@@ -185,7 +185,7 @@ function isValidGeojson(value) {
       console.log(`Parsed GeoJSON string is valid: ${isValid}`); // Log the result of the validation
       return isValid;
     } catch (e) {
-      console.log(`Failed to parse GeoJSON string, Error: ${e.message}`); // Log the parsing error with message
+      console.error(`Failed to parse GeoJSON string, Error: ${e.message}`); // Log the parsing error with message
       return false; // Not a valid JSON string
     }
   } else if (typeof value === 'object' && value !== null) {
@@ -193,7 +193,7 @@ function isValidGeojson(value) {
     console.log(`GeoJSON object is valid: ${isValid}`); // Log the result of the validation
     return isValid;
   }
-  console.log(`GeoJSON value is not a valid type: ${typeof value}`); // Log the type error with the type of the value
+  console.error(`GeoJSON value is not a valid type: ${typeof value}`); // Log the type error with the type of the value
   return false; // Not a valid type for GeoJSON
 }
 
@@ -201,11 +201,11 @@ function isValidGeojson(value) {
 function isValidGeojsonObject(obj) {
   console.log(`Validating GeoJSON object: ${JSON.stringify(obj)}, Type: ${typeof obj}`); // Log the object and type being validated
   if (typeof obj !== 'object' || obj === null) {
-    console.log('GeoJSON object is not valid: Not an object or is null'); // Log the structure error
+    console.error('GeoJSON object is not valid: Not an object or is null'); // Log the structure error
     return false;
   }
   if (!Array.isArray(obj.features)) {
-    console.log('GeoJSON object is not valid: Missing or invalid features array'); // Log the structure error
+    console.error('GeoJSON object is not valid: Missing or invalid features array'); // Log the structure error
     return false;
   }
   const hasValidType = obj.type === 'FeatureCollection';
@@ -331,6 +331,7 @@ module.exports = function(options) {
         console.log('Starting map rendering process');
         const mapRendered = await page.evaluate(() => {
           return new Promise((resolve, reject) => {
+            console.log('Map rendering evaluation started'); // Log the start of the map rendering evaluation
             // Set a timeout for map rendering
             const timeoutId = setTimeout(() => {
               console.log('Map rendering timed out');
