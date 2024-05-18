@@ -38,9 +38,16 @@ app.use((req, res, next) => {
 
 app.get('/health', (req, res) => res.sendStatus(200));
 
-const handler = (res, params) => {
+const handler = (res, params, reqDetails) => {
+  // Log that the handler function was called
+  logStream.write(`Handler function called with params: ${JSON.stringify(params)}\n`);
   const logParams = `Received parameters: ${JSON.stringify(params)}\n`; // Log the received parameters
   logStream.write(logParams);
+  // Additional logging for debugging purposes
+  if (reqDetails) {
+    const logReqDetails = `Full request details: ${JSON.stringify(reqDetails)}\n`;
+    logStream.write(logReqDetails);
+  }
   const filename = params.f || params.geojsonfile;
   if (
     filename &&
@@ -62,8 +69,16 @@ const handler = (res, params) => {
     });
 };
 
-app.get('/', (req, res) => handler(res, req.query));
-app.post('/', (req, res) => handler(res, req.body));
+app.get('/', (req, res) => {
+  // Additional logging for debugging purposes
+  logStream.write(`GET request body: ${JSON.stringify(req.query)}\n`);
+  handler(res, req.query, { headers: req.headers, query: req.query });
+});
+app.post('/', (req, res) => {
+  // Additional logging for debugging purposes
+  logStream.write(`POST request body: ${JSON.stringify(req.body)}\n`);
+  handler(res, req.body, { headers: req.headers, body: req.body });
+});
 
 app.get('/dynamic', (req, res) => {
   handler(res, { ...req.query, renderToHtml: true });
