@@ -308,7 +308,7 @@ module.exports = function(options) {
     }
     // Validate the geojson parameter separately to provide a more detailed error message
     if (key === 'geojson' && !config.validate(options[key])) {
-      console.error(`GeoJSON validation failed for value:`, options[key]); // Log the value that failed validation
+      console.error('GeoJSON validation failed for value:', options[key]); // Log the value that failed validation
       throw new Error(`Invalid ${key} parameter: the provided value is not a valid GeoJSON object or string.`);
     } else if (key !== 'geojson' && !config.validate(options[key])) {
       throw new Error(`Invalid ${key} parameter: the provided value does not meet the expected type or format.`);
