@@ -177,44 +177,68 @@ async function configCache(page) {
 
 // Validation function to check if a value is a valid GeoJSON object or string
 function isValidGeojson(value) {
+  console.log(`Validating GeoJSON: ${JSON.stringify(value)}`); // Log the value being validated
   if (typeof value === 'string') {
-    try {
-      const parsed = JSON.parse(value);
-      return isValidGeojsonObject(parsed);
-    } catch {
+    if (value.trim().startsWith('{') && value.trim().endsWith('}')) {
+      try {
+        const parsed = JSON.parse(value);
+        console.log(`Parsed GeoJSON string, proceeding to object validation: ${JSON.stringify(parsed)}`);
+        const isValid = isValidGeojsonObject(parsed);
+        console.log(`Parsed GeoJSON string is valid: ${isValid}`); // Log the result of the validation
+        return isValid;
+      } catch (error) {
+        console.error(`Failed to parse GeoJSON string: ${error.message}`); // Log the parsing error
+        return false; // Not a valid JSON string
+      }
+    } else {
+      console.error('GeoJSON validation failed: value is not a valid JSON string'); // Log the invalid string error
       return false; // Not a valid JSON string
     }
   } else if (typeof value === 'object' && value !== null) {
-    return isValidGeojsonObject(value);
+    console.log(`GeoJSON object provided, proceeding to object validation: ${JSON.stringify(value)}`);
+    const isValid = isValidGeojsonObject(value);
+    console.log(`GeoJSON object is valid: ${isValid}`); // Log the result of the validation
+    return isValid;
   }
+  console.error('GeoJSON validation failed: value is not a string or object'); // Log the type error
   return false; // Not a valid type for GeoJSON
 }
 
 // Helper function to check if an object is a valid GeoJSON structure
 function isValidGeojsonObject(obj) {
+  console.log(`Validating GeoJSON object structure: ${JSON.stringify(obj)}`);
   if (typeof obj !== 'object' || obj === null) {
+    console.error('GeoJSON object validation failed: value is not an object or is null');
     return false;
   }
   if (obj.type !== 'FeatureCollection') {
+    console.error('GeoJSON object validation failed: type is not FeatureCollection');
     return false;
   }
   if (!Array.isArray(obj.features)) {
+    console.error('GeoJSON object validation failed: features is not an array');
     return false;
   }
   for (const feature of obj.features) {
+    console.log(`Validating feature: ${JSON.stringify(feature)}`);
     if (typeof feature !== 'object' || feature === null || feature.type !== 'Feature') {
+      console.error('GeoJSON object validation failed: feature is not an object, is null, or type is not Feature');
       return false;
     }
     if (!feature.geometry || typeof feature.geometry !== 'object' || feature.geometry === null) {
+      console.error('GeoJSON object validation failed: geometry is not an object or is null');
       return false;
     }
     if (feature.geometry.type !== 'Point' && feature.geometry.type !== 'LineString' && feature.geometry.type !== 'Polygon') {
+      console.error(`GeoJSON object validation failed: geometry type is not Point, LineString, or Polygon, but ${feature.geometry.type}`);
       return false;
     }
     if (!Array.isArray(feature.geometry.coordinates)) {
+      console.error('GeoJSON object validation failed: coordinates is not an array');
       return false;
     }
   }
+  console.log('GeoJSON object is valid');
   return true;
 }
 
