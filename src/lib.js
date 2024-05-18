@@ -289,7 +289,7 @@ module.exports = function(options) {
     scale: { default: false, validate: (val) => isBoolean(val) || isObject(val) },
     markerIconOptions: { default: false, validate: isObject },
     style: { default: false, validate: isObject },
-    timeout: { default: 20000, validate: isNumber },
+    timeout: { default: 60000, validate: isNumber },
     haltOnConsoleError: { default: false, validate: isBoolean }
   };
 
