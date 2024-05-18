@@ -158,29 +158,16 @@
             {{/if}}
             console.log('Adding backgroundLayer to map');
             backgroundLayer.addTo(map).on('load', function() {
-                console.log('backgroundLayer load event fired');
-                window.mapRendered = true;
-                console.log('window.mapRendered set to:', window.mapRendered);
-                // Additional logging to check if tiles are loaded
-                console.log('Tiles loaded:', map._tilesToLoad || 'No tiles to load info');
-                // Confirming that the load event listener is executed
-                console.log('Load event listener executed successfully.');
-                // Log the state of the map and backgroundLayer after load event
-                console.log('State of map after backgroundLayer load event:', {
+                // Log the state of the map just before setting mapRendered to true
+                console.log('State of map just before load event:', {
                     hasLayer: map.hasLayer(backgroundLayer),
                     isLoading: map.isLoading(),
                     tilesToLoad: map._tilesToLoad,
                     tileLayers: map._tileLayers
                 });
-                // Log the bounds of the map to confirm it is set correctly
-                console.log('Map bounds after load event:', map.getBounds().toBBoxString());
-                // Additional check to confirm the map is rendered
-                if (map._tilesToLoad === 0 && map.hasLayer(backgroundLayer)) {
-                    console.log('Map rendering confirmed, tiles loaded and background layer present.');
-                } else {
-                    console.error('Map rendering issue detected, tiles or background layer not loaded correctly.');
-                    window.mapRendered = false; // Set to false if the map has not rendered correctly
-                }
+                console.log('backgroundLayer load event fired');
+                window.mapRendered = true;
+                console.log('window.mapRendered set to:', window.mapRendered);
             }).on('error', function(e) {
                 console.error('backgroundLayer error event fired', e);
                 // Log the error to understand why the background layer failed to load
