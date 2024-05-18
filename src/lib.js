@@ -284,7 +284,7 @@ module.exports = function(options) {
     height: { default: 600, validate: isNumber },
     width: { default: 800, validate: isNumber },
     center: { default: '', validate: (val) => isString(val) && !hasTemplateInjection(val) },
-    zoom: { default: '', validate: isNumber },
+    zoom: { default: 10, validate: isNumber },
     maxZoom: { default: (options) => options.vectorserverUrl ? 20 : 17, validate: isNumber },
     attribution: { default: 'osm-static-maps | © OpenStreetMap contributors', validate: (val) => isString(val) && !hasTemplateInjection(val) },
     tileserverUrl: { default: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', validate: (val) => isString(val) && !hasTemplateInjection(val) },
@@ -311,7 +311,7 @@ module.exports = function(options) {
       console.error('GeoJSON validation failed for value:', options[key]); // Log the value that failed validation
       throw new Error(`Invalid ${key} parameter: the provided value is not a valid GeoJSON object or string.`);
     } else if (key !== 'geojson' && !config.validate(options[key])) {
-      throw new Error(`Invalid ${key} parameter: the provided value does not meet the expected type or format.`);
+      throw new Error(`Invalid ${key} parameter: the provided value '${options[key]}' does not meet the expected type or format.`);
     }
   });
 
