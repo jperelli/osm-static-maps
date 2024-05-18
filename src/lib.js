@@ -103,32 +103,27 @@ process.on('warning', (e) => console.warn(e.stack));
 
 // add network cache to cache tiles
 const cache = {};
-const cacheLocks = new Set();
+const lockQueues = {};
 
-// eslint-disable-next-line no-undef
-function delay(ms) {
-  // Using setTimeout here is intentional and necessary for the delay function
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-// eslint-disable-next-line no-await-in-loop
 async function acquireCacheLock(url) {
-  while (cacheLocks.has(url)) {
-    await delay(10); // wait 10ms before retrying
-  }
-  cacheLocks.add(url);
+  const lockQueue = lockQueues[url] || (lockQueues[url] = Promise.resolve());
+  let resolveLock;
+  const lock = new Promise(resolve => {
+    resolveLock = resolve;
+  });
+  lockQueues[url] = lockQueue.then(() => lock);
+  await lockQueue;
+  return resolveLock;
 }
 
-function releaseCacheLock(url) {
-  cacheLocks.delete(url);
-}
+// Removed unused releaseCacheLock function
 
 async function configCache(page) {
   await page.setRequestInterception(true);
 
   page.on('request', async (request) => {
     const url = request.url();
-    await acquireCacheLock(url);
+    const resolveLock = await acquireCacheLock(url);
     try {
       if (cache[url] && cache[url].expires > Date.now()) {
         await request.respond(cache[url]);
@@ -136,19 +131,19 @@ async function configCache(page) {
         request.continue();
       }
     } finally {
-      releaseCacheLock(url);
+      resolveLock();
     }
   });
 
   page.on('response', async (response) => {
     const url = response.url();
-    await acquireCacheLock(url);
+    const resolveLock = await acquireCacheLock(url);
     try {
       const headers = response.headers();
       const cacheControl = headers['cache-control'] || '';
       const maxAgeMatch = cacheControl.match(/max-age=(\d+)/);
       const maxAge = maxAgeMatch && maxAgeMatch.length > 1 ? parseInt(maxAgeMatch[1], 10) : 0;
-      if (maxAge && (!cache[url] || cache[url].expires <= Date.now())) {
+      if (maxAge) {
         let buffer;
         try {
           buffer = await response.buffer();
@@ -156,15 +151,18 @@ async function configCache(page) {
           // some responses do not contain buffer and do not need to be cached
           return;
         }
-        cache[url] = {
-          status: response.status(),
-          headers: response.headers(),
-          body: buffer,
-          expires: Date.now() + (maxAge * 1000),
-        };
+        // Check if the cache entry is still valid before assigning
+        if (!cache[url] || cache[url].expires <= Date.now()) {
+          cache[url] = {
+            status: response.status(),
+            headers: response.headers(),
+            body: buffer,
+            expires: Date.now() + (maxAge * 1000),
+          };
+        }
       }
     } finally {
-      releaseCacheLock(url);
+      resolveLock();
     }
   });
 }
@@ -246,7 +244,7 @@ module.exports = function(options) {
       options[key] = config.default(options);
     }
     if (!config.validate(options[key])) {
-      throw new Error(`Invalid ${key} parameter: must be a ${typeof config.default} without template injection`);
+      throw new Error(`Invalid ${key} parameter: must be a valid GeoJSON object or a string that can be parsed into a valid GeoJSON object`);
     }
   });
 
@@ -259,16 +257,17 @@ module.exports = function(options) {
         if (options.geojson) {
           throw new Error('Only one option allowed: \'geojsonfile\' or \'geojson\'');
         }
-        if (options.geojsonfile.startsWith('http://') || options.geojsonfile.startsWith('https://')) {
-          options.geojson = await httpGet(options.geojsonfile).catch(e => { throw new Error(`Failed to get geojson file: ${e.message}`); });
-        }
-        else {
-          options.geojson = fs.readFileSync(
-            options.geojsonfile == '-'
-              ? process.stdin.fd
-              : options.geojsonfile,
-            'utf8'
-          );
+        console.log('Attempting to fetch geojson file from URL:', options.geojsonfile);
+        try {
+          const geojsonContent = await httpGet(options.geojsonfile);
+          console.log('Geojson file fetched successfully.');
+          // Ensure options.geojson is not already set by another concurrent operation
+          if (!options.geojson) {
+            options.geojson = geojsonContent;
+          }
+        } catch (e) {
+          console.error('Failed to fetch geojson file:', e);
+          throw new Error(`Failed to get geojson file: ${e.message}`);
         }
       }
 
@@ -295,17 +294,43 @@ module.exports = function(options) {
           height: Number(options.height)
         });
 
-        await page.setContent(html);
-        // The 'window' object is used here in the context of the browser environment provided by puppeteer
-        await page.evaluate(() => {
+        // eslint-disable-next-line no-undef
+        const mapRendered = await page.evaluate(() => {
           return new Promise((resolve, reject) => {
+            // Set a timeout for map rendering
+            // eslint-disable-next-line no-undef
+            const timeoutId = setTimeout(() => {
+              console.log('Map rendering timed out');
+              reject(new Error('Map not rendered within the specified timeout.'));
+            }, 20000); // 20 seconds timeout
+
+            // The actual map rendering completion event is handled in the template.html
             if (window.mapRendered === true) {
-              resolve();
+              console.log('Map is already rendered');
+              // eslint-disable-next-line no-undef
+              clearTimeout(timeoutId);
+              resolve(true);
             } else {
-              reject('Map not rendered within the specified timeout.');
+              // Continuously check if the map has been rendered
+              // eslint-disable-next-line no-undef
+              const checkRendered = setInterval(() => {
+                console.log('Checking if map is rendered:', window.mapRendered);
+                if (window.mapRendered === true) {
+                  console.log('Map has been rendered');
+                  // eslint-disable-next-line no-undef
+                  clearTimeout(timeoutId);
+                  // eslint-disable-next-line no-undef
+                  clearInterval(checkRendered);
+                  resolve(true);
+                }
+              }, 100); // Check every 100ms
             }
           });
         });
+
+        if (!mapRendered) {
+          throw new Error('Map rendering failed or timed out.');
+        }
 
         let imageBinary = await page.screenshot({
           type: options.type || 'png',
