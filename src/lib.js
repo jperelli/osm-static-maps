@@ -274,7 +274,7 @@ module.exports = function(options) {
     }
     // Validate the geojson parameter separately to provide a more detailed error message
     if (key === 'geojson' && !config.validate(options[key])) {
-      console.error(`GeoJSON validation failed for value: ${options[key]}`); // Log the value that failed validation
+      console.error('GeoJSON validation failed for value:', options[key]); // Log the value that failed validation
       throw new Error(`Invalid ${key} parameter: the provided value is not a valid GeoJSON object or string.`);
     } else if (key !== 'geojson' && !config.validate(options[key])) {
       throw new Error(`Invalid ${key} parameter: the provided value does not meet the expected type or format.`);
@@ -333,7 +333,7 @@ module.exports = function(options) {
             const timeoutId = setTimeout(() => {
               console.log('Map rendering timed out');
               reject(new Error('Map not rendered within the specified timeout.'));
-            }, 20000); // 20 seconds timeout
+            }, 40000); // 40 seconds timeout
 
             // The actual map rendering completion event is handled in the template.html
             if (window.mapRendered === true) {
