@@ -91,6 +91,16 @@ All parameters have a short and long version. The short version can be used only
 
 * Note on style: it's also accepted a pathOptions attribute in the geojson feature, for example `{"type":"Polygon","coordinates":[[[-56.698,-36.413],[-56.716,-36.348],[-56.739,-36.311]]],"pathOptions":{"color":"#FF5555"}}` (also remember that the `#` char needs to be passed as `%23` if you are using GET params)
 
+## Parameter Validation and Error Handling
+
+The `osm-static-maps` library now includes robust parameter validation to ensure the integrity and security of the map rendering process. Each parameter is checked to confirm that it meets the expected data type and format. If a parameter fails validation, an error is thrown with a descriptive message indicating the nature of the validation failure.
+
+For instance, the `geojson` parameter must be a valid GeoJSON object or a string that can be parsed into a valid GeoJSON object. If the `geojson` parameter contains template injections or is not a valid GeoJSON format, the server will respond with a `400 Bad Request` status and an error message detailing the issue.
+
+Similarly, other parameters such as `height`, `width`, `zoom`, and `markerIconOptions` are validated against their expected types. The `height` and `width` parameters must be numbers, `zoom` must be a number within the allowed range, and `markerIconOptions` must be an object. If these validations fail, the server will throw an error and provide a message that helps to identify the incorrect parameter.
+
+Please ensure that all parameters passed to the library, CLI, or server adhere to the expected formats as described in the API Reference section above. This will help prevent common errors and ensure a smooth map rendering experience.
+
 ## Design considerations & architecture
 
 [Read the blogpost](https://jperelli.com.ar/project/2019/10/01/osm-static-maps/) on the creation of this library and how it works internally
@@ -108,4 +118,3 @@ Specially to the contributors of
 - Puppeteer
 - ExpressJS
 - Handlebars
-
