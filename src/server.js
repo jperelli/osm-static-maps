@@ -63,6 +63,17 @@ const handler = (res, params, reqDetails) => {
   // Additional logging to capture the geojson parameter before it is passed to the osmsm function
   if (params.geojson) {
     logStream.write(`GeoJSON parameter before osmsm call: ${params.geojson}\n`);
+    // Parse the geojson parameter to ensure it is a valid JSON object
+    try {
+      const parsedGeojson = JSON.parse(params.geojson);
+      logStream.write(`Parsed GeoJSON parameter: ${JSON.stringify(parsedGeojson)}\n`);
+      // Replace the stringified geojson with the parsed object
+      params.geojson = parsedGeojson;
+    } catch (error) {
+      logStream.write(`Error parsing GeoJSON parameter: ${error}\n`);
+      res.status(400).send('Invalid GeoJSON parameter');
+      return;
+    }
   }
   osmsm(params)
     .then((data) => res.end(data))
