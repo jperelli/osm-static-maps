@@ -66,12 +66,16 @@ const handler = (res, params, reqDetails) => {
     // Parse the geojson parameter to ensure it is a valid JSON object
     try {
       const parsedGeojson = JSON.parse(params.geojson);
+      // Validate the parsed GeoJSON object before proceeding
+      if (!osmsm.isValidGeojsonObject(parsedGeojson)) {
+        throw new Error('Parsed GeoJSON object is not valid.');
+      }
       logStream.write(`Parsed GeoJSON parameter: ${JSON.stringify(parsedGeojson)}\n`);
       // Replace the stringified geojson with the parsed object
       params.geojson = parsedGeojson;
     } catch (error) {
       logStream.write(`Error parsing GeoJSON parameter: ${error}\n`);
-      res.status(400).send('Invalid GeoJSON parameter');
+      res.status(400).send(`Invalid GeoJSON parameter: ${error.message}`);
       return;
     }
   }
