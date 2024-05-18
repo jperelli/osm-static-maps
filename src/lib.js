@@ -294,11 +294,10 @@ module.exports = function(options) {
           height: Number(options.height)
         });
 
-        // eslint-disable-next-line no-undef
+        console.log('Starting map rendering process');
         const mapRendered = await page.evaluate(() => {
           return new Promise((resolve, reject) => {
             // Set a timeout for map rendering
-            // eslint-disable-next-line no-undef
             const timeoutId = setTimeout(() => {
               console.log('Map rendering timed out');
               reject(new Error('Map not rendered within the specified timeout.'));
@@ -327,6 +326,7 @@ module.exports = function(options) {
             }
           });
         });
+        console.log('Map rendering process completed:', mapRendered);
 
         if (!mapRendered) {
           throw new Error('Map rendering failed or timed out.');
