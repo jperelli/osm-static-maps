@@ -177,23 +177,16 @@ async function configCache(page) {
 
 // Validation function to check if a value is a valid GeoJSON object or string
 function isValidGeojson(value) {
-  console.log(`Validating GeoJSON value: ${value}, Type: ${typeof value}`); // Log the value and type being validated
   if (typeof value === 'string') {
     try {
       const parsed = JSON.parse(value);
-      const isValid = isValidGeojsonObject(parsed);
-      console.log(`Parsed GeoJSON string is valid: ${isValid}`); // Log the result of the validation
-      return isValid;
+      return isValidGeojsonObject(parsed);
     } catch (e) {
-      console.error(`Failed to parse GeoJSON string, Error: ${e.message}`); // Log the parsing error with message
       return false; // Not a valid JSON string
     }
   } else if (typeof value === 'object' && value !== null) {
-    const isValid = isValidGeojsonObject(value);
-    console.log(`GeoJSON object is valid: ${isValid}`); // Log the result of the validation
-    return isValid;
+    return isValidGeojsonObject(value);
   }
-  console.error(`GeoJSON value is not a valid type: ${typeof value}`); // Log the type error with the type of the value
   return false; // Not a valid type for GeoJSON
 }
 

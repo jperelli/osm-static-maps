@@ -72,11 +72,15 @@ const handler = (res, params, reqDetails) => {
 app.get('/', (req, res) => {
   // Additional logging for debugging purposes
   logStream.write(`GET request body: ${JSON.stringify(req.query)}\n`);
+  // Log the full request details
+  logStream.write(`Full GET request details: Headers - ${JSON.stringify(req.headers)}, Query - ${JSON.stringify(req.query)}\n`);
   handler(res, req.query, { headers: req.headers, query: req.query });
 });
 app.post('/', (req, res) => {
   // Additional logging for debugging purposes
   logStream.write(`POST request body: ${JSON.stringify(req.body)}\n`);
+  // Log the full request details
+  logStream.write(`Full POST request details: Headers - ${JSON.stringify(req.headers)}, Body - ${JSON.stringify(req.body)}\n`);
   handler(res, req.body, { headers: req.headers, body: req.body });
 });
 
