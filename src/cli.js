@@ -130,7 +130,7 @@ program
   .option('-p, --port <number>', 'Port number to listen')
   .action(function(cmd) {
     const server = require('./server');
-    const port = cmd.port || process.env.PORT || 3000;
+    const port = cmd.port || process.env.PORT || 3001;
     server.listen(port, function() {
       console.log('osmsm server listening on port ' + port);
     });
