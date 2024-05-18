@@ -166,6 +166,13 @@
                 console.log('Error details:', e.message || e);
             });
             console.log('backgroundLayer load event listener added');
+            // Additional logging to check the state of the map and backgroundLayer
+            console.log('Map state after backgroundLayer added:', {
+                hasLayer: map.hasLayer(backgroundLayer),
+                isLoading: map.isLoading(),
+                tilesToLoad: map._tilesToLoad,
+                tileLayers: map._tileLayers
+            });
 
         </script>
     </body>
