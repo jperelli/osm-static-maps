@@ -60,6 +60,10 @@ const handler = (res, params, reqDetails) => {
     logStream.write(`Error: ${error}\n`);
     throw error;
   }
+  // Additional logging to capture the geojson parameter before it is passed to the osmsm function
+  if (params.geojson) {
+    logStream.write(`GeoJSON parameter before osmsm call: ${params.geojson}\n`);
+  }
   osmsm(params)
     .then((data) => res.end(data))
     .catch((err) => {
