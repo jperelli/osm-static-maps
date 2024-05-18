@@ -123,6 +123,9 @@ async function configCache(page) {
 
   page.on('request', async (request) => {
     const url = request.url();
+    const method = request.method();
+    const headers = request.headers();
+    console.log(`Request made with method: ${method}, URL: ${url}, Headers:`, headers); // Log the request method, URL, and headers
     const resolveLock = await acquireCacheLock(url);
     try {
       if (cache[url] && cache[url].expires > Date.now()) {
@@ -130,6 +133,8 @@ async function configCache(page) {
       } else {
         request.continue();
       }
+    } catch (error) {
+      console.error(`Error handling request for URL: ${url}`, error); // Log any errors that occur during request handling
     } finally {
       resolveLock();
     }
@@ -137,9 +142,12 @@ async function configCache(page) {
 
   page.on('response', async (response) => {
     const url = response.url();
+    const status = response.status();
+    console.log(`Response received from URL: ${url}, Status: ${status}`); // Log the response URL and status
     const resolveLock = await acquireCacheLock(url);
     try {
       const headers = response.headers();
+      console.log(`Response headers for URL: ${url}`, headers); // Log the response headers
       const cacheControl = headers['cache-control'] || '';
       const maxAgeMatch = cacheControl.match(/max-age=(\d+)/);
       const maxAge = maxAgeMatch && maxAgeMatch.length > 1 ? parseInt(maxAgeMatch[1], 10) : 0;
@@ -147,8 +155,8 @@ async function configCache(page) {
         let buffer;
         try {
           buffer = await response.buffer();
-        } catch {
-          // some responses do not contain buffer and do not need to be cached
+        } catch (error) {
+          console.error(`Error getting buffer for response from URL: ${url}`, error); // Log any errors that occur during response buffering
           return;
         }
         // Check if the cache entry is still valid before assigning
@@ -169,24 +177,36 @@ async function configCache(page) {
 
 // Validation function to check if a value is a valid GeoJSON object or string
 function isValidGeojson(value) {
+  console.log('isValidGeojson called with value:', value); // Log the input value
+  console.log('Type of value:', typeof value); // Log the type of the value
   if (typeof value === 'string') {
     try {
       const parsed = JSON.parse(value);
-      return isValidGeojsonObject(parsed);
-    } catch {
+      console.log('Parsed GeoJSON object:', parsed); // Log the parsed object
+      const isValid = isValidGeojsonObject(parsed);
+      console.log('Is parsed object valid GeoJSON:', isValid); // Log the result of the validation
+      return isValid;
+    } catch (e) {
+      console.log('Failed to parse value as JSON:', value); // Log the failed parsing
+      console.log('Parsing error:', e.message); // Log the parsing error message
       return false; // Not a valid JSON string
     }
   } else if (typeof value === 'object' && value !== null) {
-    return isValidGeojsonObject(value);
+    const isValid = isValidGeojsonObject(value);
+    console.log('Is object valid GeoJSON:', isValid, 'Object:', value); // Log the result of the validation
+    return isValid;
   }
+  console.log('Value is not a valid type for GeoJSON:', value); // Log the invalid type
   return false; // Not a valid type for GeoJSON
 }
 
 // Helper function to check if an object is a valid GeoJSON structure
 function isValidGeojsonObject(obj) {
-  // Basic check for type and features properties
-  return Object.prototype.hasOwnProperty.call(obj, 'type') && Object.prototype.hasOwnProperty.call(obj, 'features') &&
-         obj.type === 'FeatureCollection' && Array.isArray(obj.features);
+  const isValid = Object.prototype.hasOwnProperty.call(obj, 'type') &&
+                  Object.prototype.hasOwnProperty.call(obj, 'features') &&
+                  obj.type === 'FeatureCollection' && Array.isArray(obj.features);
+  console.log('GeoJSON object is valid:', isValid, 'Object:', obj); // Log the validation result
+  return isValid;
 }
 
 // Validation helper functions
@@ -243,12 +263,13 @@ module.exports = function(options) {
     if (typeof config.default === 'function') {
       options[key] = config.default(options);
     }
-    if (!config.validate(options[key])) {
-      throw new Error(`Invalid ${key} parameter: must be a valid GeoJSON object or a string that can be parsed into a valid GeoJSON object`);
+    // Validate the geojson parameter separately to provide a more detailed error message
+    if (key === 'geojson' && !config.validate(options[key])) {
+      throw new Error(`Invalid ${key} parameter: the provided value is not a valid GeoJSON object or string.`);
+    } else if (key !== 'geojson' && !config.validate(options[key])) {
+      throw new Error(`Invalid ${key} parameter: the provided value does not meet the expected type or format.`);
     }
   });
-
-  // Removed redundant validation call
 
   return new Promise(function(resolve, reject) {
     (async () => {
