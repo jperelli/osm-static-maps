@@ -177,22 +177,35 @@ async function configCache(page) {
 
 // Validation function to check if a value is a valid GeoJSON object or string
 function isValidGeojson(value) {
+  console.log(`Validating GeoJSON value: ${value}, Type: ${typeof value}`); // Log the value and type being validated
   if (typeof value === 'string') {
     try {
       const parsed = JSON.parse(value);
-      return isValidGeojsonObject(parsed);
-    } catch {
+      const isValid = isValidGeojsonObject(parsed);
+      console.log(`Parsed GeoJSON string is valid: ${isValid}`); // Log the result of the validation
+      return isValid;
+    } catch (e) {
+      console.log(`Failed to parse GeoJSON string, Error: ${e.message}`); // Log the parsing error with message
       return false; // Not a valid JSON string
     }
   } else if (typeof value === 'object' && value !== null) {
-    return isValidGeojsonObject(value);
+    const isValid = isValidGeojsonObject(value);
+    console.log(`GeoJSON object is valid: ${isValid}`); // Log the result of the validation
+    return isValid;
   }
+  console.log(`GeoJSON value is not a valid type: ${typeof value}`); // Log the type error with the type of the value
   return false; // Not a valid type for GeoJSON
 }
 
 // Helper function to check if an object is a valid GeoJSON structure
 function isValidGeojsonObject(obj) {
-  if (typeof obj !== 'object' || obj === null || !Array.isArray(obj.features)) {
+  console.log(`Validating GeoJSON object: ${JSON.stringify(obj)}, Type: ${typeof obj}`); // Log the object and type being validated
+  if (typeof obj !== 'object' || obj === null) {
+    console.log('GeoJSON object is not valid: Not an object or is null'); // Log the structure error
+    return false;
+  }
+  if (!Array.isArray(obj.features)) {
+    console.log('GeoJSON object is not valid: Missing or invalid features array'); // Log the structure error
     return false;
   }
   const hasValidType = obj.type === 'FeatureCollection';
@@ -204,7 +217,9 @@ function isValidGeojsonObject(obj) {
            Array.isArray(feature.geometry.coordinates);
     return isValidFeature;
   });
-  return hasValidType && hasValidFeatures;
+  const isValid = hasValidType && hasValidFeatures;
+  console.log(`GeoJSON object structure is valid: ${isValid}`); // Log the result of the structure validation
+  return isValid;
 }
 
 // Validation helper functions
