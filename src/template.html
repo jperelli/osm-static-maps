@@ -72,6 +72,8 @@
             {{/if}}
 
             {{#if geojson }}
+                console.log('GeoJSON parameter injected into template:', {{{ geojson }}});
+                console.log('GeoJSON parameter before L.geoJson call:', {{{ geojson }}});
                 {{#if markerIconOptions}}
                     var myIcon = L.icon({{{markerIconOptions}}});
                 {{else}}
