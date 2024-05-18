@@ -1,5 +1,7 @@
 const express = require('express'),
   http = require('http'),
+  rateLimit = require('express-rate-limit'),
+  xss = require('xss'),
   { main: osmsm, isValidGeojson } = require('./lib.js');
 const fs = require('fs');
 
@@ -11,6 +13,16 @@ app.set('view options', { layout: false });
 app.use(express.json({ limit: '50mb' }));
 
 const logStream = fs.createWriteStream('/home/ubuntu/osm-static-maps/server.log', { flags: 'a' });
+
+// Apply rate limiting to all requests
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+});
+
+app.use(limiter);
 
 app.use((req, res, next) => {
   const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
@@ -79,6 +91,10 @@ const handler = (res, params, reqDetails) => {
       return;
     }
   }
+  // Sanitize all incoming data for XSS
+  Object.keys(params).forEach(key => {
+    params[key] = xss(params[key]);
+  });
   osmsm(params)
     .then((data) => res.end(data))
     .catch((err) => {
