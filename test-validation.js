@@ -30,7 +30,7 @@ const options = {
   scale: false,
   markerIconOptions: {},
   style: {},
-  timeout: 20000,
+  timeout: 60000, // Updated timeout to match the evaluate function in lib.js
   haltOnConsoleError: false
 };
 
