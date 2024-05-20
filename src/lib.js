@@ -192,7 +192,8 @@ module.exports = function(options) {
       if (typeof value !== 'string') {
         throw new Error(`Validation error: ${paramName} should be a string`);
       }
-      if (Handlebars.compile(value) !== value) {
+      const handlebarsInjectionPattern = /{{.*}}/;
+      if (handlebarsInjectionPattern.test(value)) {
         throw new Error(`Validation error: ${paramName} contains handlebars template injection`);
       }
       return value;
