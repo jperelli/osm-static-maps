@@ -113,7 +113,7 @@ async function configCache(page) {
       }
       request.continue();
   });
-  
+
   page.on('response', async (response) => {
       const url = response.url();
       const headers = response.headers();
@@ -122,7 +122,7 @@ async function configCache(page) {
       const maxAge = maxAgeMatch && maxAgeMatch.length > 1 ? parseInt(maxAgeMatch[1], 10) : 0;
       if (maxAge) {
           if (cache[url] && cache[url].expires > Date.now()) return;
-  
+
           let buffer;
           try {
               buffer = await response.buffer();
@@ -130,7 +130,7 @@ async function configCache(page) {
               // some responses do not contain buffer and do not need to be catched
               return;
           }
-  
+
           cache[url] = {
               status: response.status(),
               headers: response.headers(),
@@ -203,12 +203,12 @@ module.exports = function(options) {
     options.geojsonfile = options.geojsonfile || '';
     options.height = parseNumber(options.height || 600, 'height');
     options.width = parseNumber(options.width || 800, 'width');
-    options.center = validateString(options.center || '', 'center');
-    options.zoom = parseNumber(options.zoom || '', 'zoom');
+    options.center = options.center === null || options.center === '' ? '' : validateString(options.center, 'center');
+    options.zoom = options.zoom === null || options.zoom === '' ? '' : parseNumber(options.zoom, 'zoom');
     options.maxZoom = parseNumber(options.maxZoom || (options.vectorserverUrl ? 20 : 17), 'maxZoom');
     options.attribution = validateString(options.attribution || 'osm-static-maps | © OpenStreetMap contributors', 'attribution');
     options.tileserverUrl = validateString(options.tileserverUrl || 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', 'tileserverUrl');
-    options.vectorserverUrl = validateString(options.vectorserverUrl || '', 'vectorserverUrl');
+    options.vectorserverUrl = options.vectorserverUrl === null || options.vectorserverUrl === '' ? '' : validateString(options.vectorserverUrl, 'vectorserverUrl');
     options.vectorserverToken = validateString(options.vectorserverToken || 'no-token', 'vectorserverToken');
     options.imagemin = parseBoolean(options.imagemin || false, 'imagemin');
     options.oxipng = parseBoolean(options.oxipng || false, 'oxipng');
