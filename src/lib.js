@@ -153,7 +153,10 @@ module.exports = function(options) {
         if (value.toLowerCase() === 'false') return false;
         throw new Error(`Validation error: ${paramName} should be a boolean`);
       }
-      return !!value;
+      if (typeof value !== 'boolean') {
+        throw new Error(`Validation error: ${paramName} should be a boolean`);
+      }
+      return value;
     }
 
     // Helper function to parse number values
@@ -162,6 +165,9 @@ module.exports = function(options) {
         const parsed = parseFloat(value);
         if (isNaN(parsed)) throw new Error(`Validation error: ${paramName} should be a number`);
         return parsed;
+      }
+      if (typeof value !== 'number') {
+        throw new Error(`Validation error: ${paramName} should be a number`);
       }
       return value;
     }
@@ -175,6 +181,20 @@ module.exports = function(options) {
           throw new Error(`Validation error: ${paramName} should be a valid JSON`);
         }
       }
+      if (typeof value !== 'object') {
+        throw new Error(`Validation error: ${paramName} should be a valid JSON`);
+      }
+      return value;
+    }
+
+    // Helper function to validate strings for handlebars injection
+    function validateString(value, paramName) {
+      if (typeof value !== 'string') {
+        throw new Error(`Validation error: ${paramName} should be a string`);
+      }
+      if (Handlebars.compile(value) !== value) {
+        throw new Error(`Validation error: ${paramName} contains handlebars template injection`);
+      }
       return value;
     }
 
@@ -182,13 +202,13 @@ module.exports = function(options) {
     options.geojsonfile = options.geojsonfile || '';
     options.height = parseNumber(options.height || 600, 'height');
     options.width = parseNumber(options.width || 800, 'width');
-    options.center = options.center || '';
+    options.center = validateString(options.center || '', 'center');
     options.zoom = parseNumber(options.zoom || '', 'zoom');
     options.maxZoom = parseNumber(options.maxZoom || (options.vectorserverUrl ? 20 : 17), 'maxZoom');
-    options.attribution = options.attribution || 'osm-static-maps | © OpenStreetMap contributors';
-    options.tileserverUrl = options.tileserverUrl || 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
-    options.vectorserverUrl = options.vectorserverUrl || '';
-    options.vectorserverToken = options.vectorserverToken || 'no-token';
+    options.attribution = validateString(options.attribution || 'osm-static-maps | © OpenStreetMap contributors', 'attribution');
+    options.tileserverUrl = validateString(options.tileserverUrl || 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', 'tileserverUrl');
+    options.vectorserverUrl = validateString(options.vectorserverUrl || '', 'vectorserverUrl');
+    options.vectorserverToken = validateString(options.vectorserverToken || 'no-token', 'vectorserverToken');
     options.imagemin = parseBoolean(options.imagemin || false, 'imagemin');
     options.oxipng = parseBoolean(options.oxipng || false, 'oxipng');
     options.arrows = parseBoolean(options.arrows || false, 'arrows');
