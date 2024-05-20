@@ -160,7 +160,10 @@ module.exports = function(options) {
     }
 
     // Helper function to parse number values
-    function parseNumber(value, paramName) {
+    function parseNumber(value, paramName, allowNull = false) {
+      if (allowNull && (value === null || value === '')) {
+        return value;
+      }
       if (typeof value === 'string') {
         const parsed = parseFloat(value);
         if (isNaN(parsed)) throw new Error(`Validation error: ${paramName} should be a number`);
@@ -209,7 +212,7 @@ module.exports = function(options) {
     options.height = parseNumber(options.height || 600, 'height');
     options.width = parseNumber(options.width || 800, 'width');
     options.center = validateString(options.center, 'center', true);
-    options.zoom = parseNumber(options.zoom, 'zoom');
+    options.zoom = parseNumber(options.zoom, 'zoom', true);
     options.maxZoom = parseNumber(options.maxZoom || (options.vectorserverUrl ? 20 : 17), 'maxZoom');
     options.attribution = validateString(options.attribution || 'osm-static-maps | © OpenStreetMap contributors', 'attribution');
     options.tileserverUrl = validateString(options.tileserverUrl || 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', 'tileserverUrl');
