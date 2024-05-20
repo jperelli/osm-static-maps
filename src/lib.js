@@ -203,7 +203,7 @@ module.exports = function(options) {
     options.geojsonfile = options.geojsonfile || '';
     options.height = parseNumber(options.height || 600, 'height');
     options.width = parseNumber(options.width || 800, 'width');
-    options.center = options.center === null || options.center === '' ? '' : validateString(options.center, 'center');
+    options.center = options.center === null || options.center === '' ? options.center : validateString(options.center, 'center');
     options.zoom = options.zoom === null || options.zoom === '' ? '' : parseNumber(options.zoom, 'zoom');
     options.maxZoom = parseNumber(options.maxZoom || (options.vectorserverUrl ? 20 : 17), 'maxZoom');
     options.attribution = validateString(options.attribution || 'osm-static-maps | © OpenStreetMap contributors', 'attribution');
