@@ -188,7 +188,12 @@ module.exports = function(options) {
     }
 
     // Helper function to validate strings for handlebars injection
-    function validateString(value, paramName) {
+    function validateString(value, paramName, allowNull = false) {
+      // Allow null or empty string values for specific parameters if allowNull is true
+      if (allowNull && (value === null || value === '')) {
+        return value;
+      }
+
       if (typeof value !== 'string') {
         throw new Error(`Validation error: ${paramName} should be a string`);
       }
