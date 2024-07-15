@@ -1,3 +1,9 @@
+# 3.11.2
+
+Improve docker files
+
+ - Add prod config without volumes and autoreload
+
 # 3.11.1
 
 Better dependencies pinning
