@@ -99,8 +99,8 @@ program
     "throw error if there is any console.error(...) when rendering the map image",
     false
   )
-  .action(function(cmd) {
-    const opts = cmd.opts();
+  .action(function() {
+    const opts = program.opts();
 
     // DEBUG
     // process.stderr.write(JSON.stringify(opts, undefined, 2));

@@ -113,7 +113,7 @@ async function configCache(page) {
       }
       request.continue();
   });
-  
+
   page.on('response', async (response) => {
       const url = response.url();
       const headers = response.headers();
@@ -122,7 +122,7 @@ async function configCache(page) {
       const maxAge = maxAgeMatch && maxAgeMatch.length > 1 ? parseInt(maxAgeMatch[1], 10) : 0;
       if (maxAge) {
           if (cache[url] && cache[url].expires > Date.now()) return;
-  
+
           let buffer;
           try {
               buffer = await response.buffer();
@@ -130,7 +130,7 @@ async function configCache(page) {
               // some responses do not contain buffer and do not need to be catched
               return;
           }
-  
+
           cache[url] = {
               status: response.status(),
               headers: response.headers(),
@@ -143,27 +143,89 @@ async function configCache(page) {
 
 module.exports = function(options) {
   return new Promise(function(resolve, reject) {
-    // TODO: validate options to avoid template injection
+    // Validate options to avoid template injection
     options = options || {};
+
+    // Helper function to parse boolean values
+    function parseBoolean(value, paramName) {
+      if (typeof value === 'string') {
+        if (value.toLowerCase() === 'true') return true;
+        if (value.toLowerCase() === 'false') return false;
+        throw new Error(`Validation error: ${paramName} should be a boolean`);
+      }
+      if (typeof value !== 'boolean') {
+        throw new Error(`Validation error: ${paramName} should be a boolean`);
+      }
+      return value;
+    }
+
+    // Helper function to parse number values
+    function parseNumber(value, paramName, allowNull = false) {
+      if (allowNull && (value === null || value === '')) {
+        return value;
+      }
+      if (typeof value === 'string') {
+        const parsed = parseFloat(value);
+        if (isNaN(parsed)) throw new Error(`Validation error: ${paramName} should be a number`);
+        return parsed;
+      }
+      if (typeof value !== 'number') {
+        throw new Error(`Validation error: ${paramName} should be a number`);
+      }
+      return value;
+    }
+
+    // Helper function to parse JSON values
+    function parseJSON(value, paramName) {
+      if (typeof value === 'string') {
+        try {
+          return JSON.parse(value);
+        } catch (e) {
+          throw new Error(`Validation error: ${paramName} should be a valid JSON`);
+        }
+      }
+      if (typeof value !== 'object') {
+        throw new Error(`Validation error: ${paramName} should be a valid JSON`);
+      }
+      return value;
+    }
+
+    // Helper function to validate strings for handlebars injection
+    function validateString(value, paramName, allowNull = false) {
+      // Allow null or empty string values for specific parameters if allowNull is true
+      if (allowNull && (value === null || value === '')) {
+        return value;
+      }
+
+      if (typeof value !== 'string') {
+        throw new Error(`Validation error: ${paramName} should be a string`);
+      }
+      const handlebarsInjectionPattern = /{{.*}}/;
+      if (handlebarsInjectionPattern.test(value)) {
+        throw new Error(`Validation error: ${paramName} contains handlebars template injection`);
+      }
+      return value;
+    }
+
     options.geojson = (options.geojson && (typeof options.geojson === 'string' ? options.geojson : JSON.stringify(options.geojson))) || '';
     options.geojsonfile = options.geojsonfile || '';
-    options.height = options.height || 600;
-    options.width = options.width || 800;
-    options.center = options.center || '';
-    options.zoom = options.zoom || '';
-    options.maxZoom = options.maxZoom || (options.vectorserverUrl ? 20 : 17);
-    options.attribution = options.attribution || 'osm-static-maps | © OpenStreetMap contributors';
-    options.tileserverUrl = options.tileserverUrl || 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
-    options.vectorserverUrl = options.vectorserverUrl || '';
-    options.vectorserverToken = options.vectorserverToken || 'no-token';
-    options.imagemin = options.imagemin || false;
-    options.oxipng = options.oxipng || false;
-    options.arrows = options.arrows || false;
-    options.scale = (options.scale && (typeof options.scale === 'string' ? options.scale : JSON.stringify(options.scale))) || false;
-    options.markerIconOptions = (options.markerIconOptions && (typeof options.markerIconOptions === 'string' ? options.markerIconOptions : JSON.stringify(options.markerIconOptions))) || false;
-    options.style = (options.style && (typeof options.style === 'string' ? options.style : JSON.stringify(options.style))) || false;
-    options.timeout = typeof options.timeout == undefined ? 20000 : options.timeout;
-    options.haltOnConsoleError = !!options.haltOnConsoleError;
+    options.height = parseNumber(options.height || 600, 'height');
+    options.width = parseNumber(options.width || 800, 'width');
+    options.center = validateString(options.center || '', 'center', true);
+    options.zoom = parseNumber(options.zoom, 'zoom', true);
+    options.maxZoom = parseNumber(options.maxZoom || (options.vectorserverUrl ? 20 : 17), 'maxZoom');
+    options.attribution = validateString(options.attribution || 'osm-static-maps | © OpenStreetMap contributors', 'attribution');
+    options.tileserverUrl = validateString(options.tileserverUrl || 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', 'tileserverUrl');
+    options.vectorserverUrl = validateString(options.vectorserverUrl || '', 'vectorserverUrl', true);
+    options.vectorserverToken = validateString(options.vectorserverToken || 'no-token', 'vectorserverToken');
+    options.imagemin = parseBoolean(options.imagemin || false, 'imagemin');
+    options.oxipng = parseBoolean(options.oxipng || false, 'oxipng');
+    options.arrows = parseBoolean(options.arrows || false, 'arrows');
+    options.scale = parseJSON(options.scale || false, 'scale');
+    options.markerIconOptions = parseJSON(options.markerIconOptions || false, 'markerIconOptions');
+    options.style = parseJSON(options.style || false, 'style');
+    options.timeout = parseNumber(typeof options.timeout == undefined ? 20000 : options.timeout, 'timeout');
+    options.haltOnConsoleError = parseBoolean(!!options.haltOnConsoleError, 'haltOnConsoleError');
 
     (async () => {
 
