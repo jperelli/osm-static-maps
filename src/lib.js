@@ -1,33 +1,43 @@
-const fs = require('fs');
-const http = require('http');
-const https = require("https");
-const Handlebars = require('handlebars');
-const path = require('path');
-const child_process = require("child_process");
+import { readFileSync } from 'fs';
+import http from 'http';
+import https from "https";
+import handlebars from 'handlebars';
+import { spawn } from "child_process";
+import { fileURLToPath } from 'url';
 
 let chrome = { args: [] };
 let puppeteer;
 
 if (process.env.AWS_LAMBDA_FUNCTION_VERSION) {
   // running on the Vercel platform.
-  chrome = require("chrome-aws-lambda");
-  puppeteer = require("puppeteer-core");
+  chrome = import("chrome-aws-lambda");
+  puppeteer = (await import("puppeteer-core")).default;
 } else {
   // running locally.
-  puppeteer = require("puppeteer");
+  puppeteer = (await import("puppeteer")).default;
+}
+
+function getDep(nodeModulesFile, binary = false) {
+  const abspath = fileURLToPath(import.meta.resolve(nodeModulesFile));
+  if (binary) {
+    return new Buffer.from(readFileSync(abspath), 'binary').toString('base64');
+  }
+  else {
+    return readFileSync(abspath, 'utf8');
+  }
 }
 
 const files = {
-  leafletjs: fs.readFileSync(require.resolve('leaflet/dist/leaflet.js'), 'utf8'),
-  leafletcss: fs.readFileSync(require.resolve('leaflet/dist/leaflet.css'), 'utf8'),
-  leafletpolylinedecorator: fs.readFileSync(require.resolve('leaflet-polylinedecorator/dist/leaflet.polylineDecorator.js'), 'utf8'),
-  mapboxjs: fs.readFileSync(require.resolve('mapbox-gl/dist/mapbox-gl.js'), 'utf8'),
-  mapboxcss: fs.readFileSync(require.resolve('mapbox-gl/dist/mapbox-gl.css'), 'utf8'),
-  leafletmapboxjs: fs.readFileSync(require.resolve('mapbox-gl-leaflet/leaflet-mapbox-gl.js'), 'utf8'),
-  markericonpng: new Buffer.from(fs.readFileSync(require.resolve('leaflet/dist/images/marker-icon.png')), 'binary').toString('base64'),
+  leafletjs: getDep('leaflet/dist/leaflet.js'),
+  leafletcss: getDep('leaflet/dist/leaflet.css'),
+  leafletpolylinedecorator: getDep('leaflet-polylinedecorator/dist/leaflet.polylineDecorator.js'),
+  mapboxjs: getDep('mapbox-gl/dist/mapbox-gl.js'),
+  mapboxcss: getDep('mapbox-gl/dist/mapbox-gl.css'),
+  leafletmapboxjs: getDep('mapbox-gl-leaflet/leaflet-mapbox-gl.js'),
+  markericonpng: getDep('leaflet/dist/images/marker-icon.png', true),
 }
-const templatestr = fs.readFileSync(path.join(__dirname, 'template.html'), 'utf8')
-const template = Handlebars.compile(templatestr);
+const templatestr = getDep('./template.html');
+const template = handlebars.compile(templatestr);
 
 
 function replacefiles(str) {
@@ -141,7 +151,7 @@ async function configCache(page) {
   });
 }
 
-module.exports = function(options) {
+export default function(options) {
   return new Promise(function(resolve, reject) {
     // TODO: validate options to avoid template injection
     options = options || {};
@@ -175,7 +185,7 @@ module.exports = function(options) {
           options.geojson = await httpGet(options.geojsonfile)
         }
         else {
-          options.geojson = fs.readFileSync(
+          options.geojson = readFileSync(
             options.geojsonfile == "-"
               ? process.stdin.fd
               : options.geojsonfile,
@@ -217,9 +227,9 @@ module.exports = function(options) {
         });
 
         if (options.imagemin) {
-          const imagemin = require("imagemin");
-          const imageminJpegtran = require("imagemin-jpegtran");
-          const imageminOptipng = require("imagemin-optipng");
+          const imagemin = (await import("imagemin")).default;
+          const imageminJpegtran = (await import("imagemin-jpegtran")).default;
+          const imageminOptipng = (await import("imagemin-optipng")).default;
           const plugins = []
           if (options.type === 'jpeg') {
             plugins.push(imageminJpegtran());

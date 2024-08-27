@@ -37,6 +37,7 @@
     "installandstartdev": "npm install && npm run dev"
   },
   "main": "./src/lib.js",
+  "type": "module",
   "bin": {
     "osmsm": "./src/cli.js"
   },

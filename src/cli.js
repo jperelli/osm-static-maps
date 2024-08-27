@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 
-const { program } = require("commander");
-const osmsm = require("./lib");
-const package = require("../package.json");
+import { program } from "commander";
+import osmsm from "./lib.js";
+import packagejson from "../package.json" with { type: 'json' };
 
 program
-  .version(package.version)
+  .version(packagejson.version)
   .name("osmsm")
   .usage(
     "[options]\nGenerate an image of a geojson with a background map layer"
@@ -128,8 +128,8 @@ program
 program
   .command("serve")
   .option("-p, --port <number>", "Port number to listen")
-  .action(function(cmd) {
-    const server = require("./server");
+  .action(async function(cmd) {
+    const server = (await import("./server.js")).default;
     const port = cmd.port || process.env.PORT || 3000;
     server.listen(port, function() {
       console.log("osmsm server listening on port " + port);

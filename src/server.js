@@ -1,13 +1,18 @@
-const express = require("express"),
-  http = require("http"),
-  osmsm = require("./lib.js");
+import express, { json } from "express";
+import { createServer } from "http";
+import osmsm from "./lib.js";
+import { fileURLToPath } from 'url';
+import path from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 // app.set("port", process.env.PORT || 3000);
 app.set("views", __dirname + "/lib");
 app.set("view engine", "handlebars");
 app.set("view options", { layout: false });
-app.use(express.json({ limit: "50mb" }));
+app.use(json({ limit: "50mb" }));
 
 app.use((req, res, next) => {
   const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
@@ -62,4 +67,4 @@ app.post("/dynamic", (req, res) => {
   handler(res, { ...req.body, renderToHtml: true })
 })
 
-module.exports = http.createServer(app);
+export default createServer(app);
