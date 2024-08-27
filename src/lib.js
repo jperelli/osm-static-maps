@@ -73,6 +73,7 @@ class Browser {
         this.browser = await this.launch();
       }
       catch (e) {
+        console.log(e)
         console.log('Error opening browser')
         console.log(JSON.stringify(e, undefined, 2))
       }
@@ -246,7 +247,7 @@ export default function(options) {
           })();
         } else {
           if (options.oxipng) {
-            const child = child_process.spawn('/root/.cargo/bin/oxipng', ['-']);
+            const child = spawn('/root/.cargo/bin/oxipng', ['-o0', '-s', '-']);
             child.stdin.on('error', function() {});
             child.stdin.write(imageBinary);
             child.stdin.end();
