@@ -28,6 +28,6 @@ WORKDIR /app
 
 COPY . /app
 
-RUN npm install
+RUN npm install && (cd node_modules/optipng-bin && npm run postinstall)
 
 CMD [ "npm", "run", "start" ]

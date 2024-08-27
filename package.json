@@ -34,7 +34,7 @@
   "scripts": {
     "start": "node src/cli.js serve",
     "dev": "nodemon -e js,html src/cli.js serve",
-    "installandstartdev": "npm install && npm run dev"
+    "installandstartdev": "npm install --loglevel=verbose --foreground-scripts && (cd node_modules/optipng-bin && npm run postinstall) && npm run dev"
   },
   "main": "./src/lib.js",
   "type": "module",

@@ -238,7 +238,7 @@ export default function(options) {
           }
           (async () => {
             resolve(await imagemin.buffer(
-              imageBinary,
+              Buffer.from(imageBinary),
               {
                 plugins,
               }
