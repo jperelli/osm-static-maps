@@ -1,3 +1,12 @@
+# 4.0.0
+
+Change commonjs to nodejs modules
+
+ - **Breaking**: Change commonjs to nodejs modules
+ - Upgrade all dependencies to latest versions
+ - Fix imagemin missing binary
+ - Change oxipng compression to level 0
+
 # 3.11.2
 
 Improve docker files
