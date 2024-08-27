@@ -1,3 +1,9 @@
+# 4.0.2
+
+Fix vector map labels
+
+ - Fix vector map labels not being rendered with 100% opacity
+
 # 4.0.1
 
 Fix vectorserverUrl

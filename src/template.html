@@ -144,7 +144,8 @@
             {{#if vectorserverUrl}}
                 var gl = L.mapboxGL({
                     accessToken: '{{ vectorserverToken }}',
-                    style: '{{{ vectorserverUrl }}}'
+                    style: '{{{ vectorserverUrl }}}',
+                    fadeDuration: 0,
                 });
                 gl.addTo(map);
                 var backgroundLayer = gl.getMapboxMap();
