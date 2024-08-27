@@ -43,6 +43,13 @@
         <div id="map"></div>
         <script>
 
+            var initTime = performance.now();
+
+            function onLoadFn() {
+                window.mapRendered = true;
+                console.log('map rendered time: ' + (performance.now() - initTime) + 'ms');
+            }
+
             {{#if arrows}}
                 var decorator = L.Symbol.arrowHead({
                     pixelSize: 6,
@@ -135,10 +142,13 @@
             {{/if}}
 
             {{#if vectorserverUrl}}
-                var backgroundLayer = L.mapboxGL({
+                var gl = L.mapboxGL({
                     accessToken: '{{ vectorserverToken }}',
                     style: '{{{ vectorserverUrl }}}'
                 });
+                gl.addTo(map);
+                var backgroundLayer = gl.getMapboxMap();
+                backgroundLayer.on('load', onLoadFn);
             {{else}}
                 {{#if tileserverUrl}}
                     var backgroundLayer = L.tileLayer(
@@ -148,13 +158,10 @@
                             fadeAnimation: false
                         }
                     );
+                    backgroundLayer.addTo(map);
+                    backgroundLayer.on('load', onLoadFn);
                 {{/if}}
             {{/if}}
-            backgroundLayer.addTo(map);
-            backgroundLayer.on('load', function() {
-                window.mapRendered = true;
-            });
-
 
         </script>
     </body>

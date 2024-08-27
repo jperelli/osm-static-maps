@@ -162,7 +162,7 @@ export default function(options) {
     options.width = options.width || 800;
     options.center = options.center || '';
     options.zoom = options.zoom || '';
-    options.maxZoom = options.maxZoom || (options.vectorserverUrl ? 20 : 17);
+    options.maxZoom = options.maxZoom || 17;
     options.attribution = options.attribution || 'osm-static-maps | © OpenStreetMap contributors';
     options.tileserverUrl = options.tileserverUrl || 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
     options.vectorserverUrl = options.vectorserverUrl || '';

@@ -30,7 +30,7 @@ program
   )
   .option(
     "-z, --zoom <number>",
-    "Zoomlevel of the map (default: vectorserverUrl ? 12 : 20)",
+    "Zoomlevel of the map (default: maxZoom)",
     Number
   )
   .option("-Z, --maxZoom <number>", "Maximum zoomlevel of the map", Number, 17)

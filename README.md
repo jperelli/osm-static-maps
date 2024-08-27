@@ -69,7 +69,7 @@ All parameters have a short and long version. The short version can be used only
 | H | height | height in pixels of the returned img | `600` |
 | W | width | height in pixels of the returned img | `800` |
 | c | center | center of the map lon,lat floats string | (center of the geojson) or `'-57.9524339,-34.921779'` |
-| z | zoom | zoomlevel of the leaflet map | if `vectorserverUrl` available, use `12` else `20` |
+| z | zoom | zoomlevel of the leaflet map | value of `maxZoom` |
 | Z | maxZoom | max zoomlevel of the leaflet map | `17` |
 | A | attribution | attribution legend | `'osm-static-maps / © OpenStreetMap contributors'` |
 | t | tileserverUrl | url of a tileserver | `'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'` |

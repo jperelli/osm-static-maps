@@ -35,7 +35,7 @@ interface OsmStaticMapsOptions {
 
   /**
    * zoomlevel of the leaflet map
-   * @defaultValue `vectorserverUrl` ? `12` : `20`
+   * @defaultValue `maxZoom`
    */
   zoom?: number;
 

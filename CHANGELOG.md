@@ -1,3 +1,10 @@
+# 4.0.1
+
+Fix vectorserverUrl
+
+ - Fix vectorserverUrl option was never returning the image
+ - Change equal default zoom for vector and raster tiles 
+
 # 4.0.0
 
 Change commonjs to nodejs modules
