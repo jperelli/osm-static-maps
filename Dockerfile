@@ -4,6 +4,7 @@ RUN \
     apt-get update \
     && \
     apt-get install -y \
+        chromium \
         libx11-xcb1 \
         libxtst6 \
         libnss3 \
