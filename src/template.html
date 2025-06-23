@@ -123,21 +123,21 @@
                 map.fitBounds(geojsonlayer.getBounds(), {maxZoom: maxZoom});
             {{/if}}
 
-            {{#if center}}
-                map.panTo(L.latLng('{{ center }}'.split(',')[1], '{{ center }}'.split(',')[0]), {animate: false});
-            {{else}}
-                {{#if geojson}}
-                {{else}}
-                    map.panTo(initialPoint, {animate: false});
-                {{/if}}
-            {{/if}}
-
             {{#if zoom}}
                 map.setZoom({{ zoom }}, {animate: false});
             {{else}}
                 {{#if geojson }}
                 {{else}}
                     map.setZoom(maxZoom, {animate: false})
+                {{/if}}
+            {{/if}}
+
+            {{#if center}}
+                map.panTo(L.latLng('{{ center }}'.split(',')[1], '{{ center }}'.split(',')[0]), {animate: false});
+            {{else}}
+                {{#if geojson}}
+                {{else}}
+                    map.panTo(initialPoint, {animate: false});
                 {{/if}}
             {{/if}}
 
