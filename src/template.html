@@ -63,6 +63,7 @@
             {{/if}}
 
             var maxZoom = Number({{maxZoom}});
+            var maxNativeZoom = Math.min(Number({{maxNativeZoom}}) || maxZoom, maxZoom);
             var initialPoint = L.latLng(-34.921779, -57.9524339);
 
             var map = new L.Map('map', {
@@ -156,6 +157,7 @@
                         '{{{tileserverUrl}}}',
                         {
                             maxZoom: maxZoom,
+                            maxNativeZoom: maxNativeZoom,
                             fadeAnimation: false
                         }
                     );
