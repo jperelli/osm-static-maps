@@ -63,6 +63,7 @@
             {{/if}}
 
             var maxZoom = Number({{maxZoom}});
+            var maxNativeZoom = Math.min(Number({{maxNativeZoom}}) || maxZoom, maxZoom);
             var initialPoint = L.latLng(-34.921779, -57.9524339);
 
             var map = new L.Map('map', {
@@ -123,21 +124,21 @@
                 map.fitBounds(geojsonlayer.getBounds(), {maxZoom: maxZoom});
             {{/if}}
 
-            {{#if center}}
-                map.panTo(L.latLng('{{ center }}'.split(',')[1], '{{ center }}'.split(',')[0]), {animate: false});
-            {{else}}
-                {{#if geojson}}
-                {{else}}
-                    map.panTo(initialPoint, {animate: false});
-                {{/if}}
-            {{/if}}
-
             {{#if zoom}}
                 map.setZoom({{ zoom }}, {animate: false});
             {{else}}
                 {{#if geojson }}
                 {{else}}
                     map.setZoom(maxZoom, {animate: false})
+                {{/if}}
+            {{/if}}
+
+            {{#if center}}
+                map.panTo(L.latLng('{{ center }}'.split(',')[1], '{{ center }}'.split(',')[0]), {animate: false});
+            {{else}}
+                {{#if geojson}}
+                {{else}}
+                    map.panTo(initialPoint, {animate: false});
                 {{/if}}
             {{/if}}
 
@@ -156,6 +157,7 @@
                         '{{{tileserverUrl}}}',
                         {
                             maxZoom: maxZoom,
+                            maxNativeZoom: maxNativeZoom,
                             fadeAnimation: false
                         }
                     );
