@@ -24,8 +24,8 @@
     "imagemin-optipng": "8.0.0",
     "leaflet": "^1.9.4",
     "leaflet-polylinedecorator": "1.6.0",
-    "mapbox-gl": "^1.13.0",
-    "mapbox-gl-leaflet": "0.0.14",
+    "maplibre-gl": "^5.0.0",
+    "@maplibre/maplibre-gl-leaflet": "^0.1.0",
     "puppeteer-core": "^23.2.0"
   },
   "engines": {

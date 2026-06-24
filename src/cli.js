@@ -36,8 +36,7 @@ program
   .option("-Z, --maxZoom <number>", "Maximum zoomlevel of the map", Number, 17)
   .option(
     "-A, --attribution <string>",
-    "Attribution legend watermark",
-    "osm-static-maps / © OpenStreetMap contributors"
+    "Attribution legend watermark (default: \"osm-static-maps / © OpenStreetMap contributors\", or \"osm-static-maps\" when --vectorserverUrl is set)"
   )
   .option(
     "-t, --tileserverUrl <string>",
@@ -51,6 +50,10 @@ program
   .option(
     "-M, --vectorserverToken <string>",
     "Token of the vector tile server (MVT)"
+  )
+  .option(
+    "--no-vectorserverAttribution",
+    "Hide the vector style's source attributions (show only --attribution)"
   )
   .option(
     "-D, --renderToHtml",

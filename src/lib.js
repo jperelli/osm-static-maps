@@ -31,9 +31,9 @@ const files = {
   leafletjs: getDep('leaflet/dist/leaflet.js'),
   leafletcss: getDep('leaflet/dist/leaflet.css'),
   leafletpolylinedecorator: getDep('leaflet-polylinedecorator/dist/leaflet.polylineDecorator.js'),
-  mapboxjs: getDep('mapbox-gl/dist/mapbox-gl.js'),
-  mapboxcss: getDep('mapbox-gl/dist/mapbox-gl.css'),
-  leafletmapboxjs: getDep('mapbox-gl-leaflet/leaflet-mapbox-gl.js'),
+  mapboxjs: getDep('maplibre-gl/dist/maplibre-gl.js'),
+  mapboxcss: getDep('maplibre-gl/dist/maplibre-gl.css'),
+  leafletmapboxjs: getDep('@maplibre/maplibre-gl-leaflet/leaflet-maplibre-gl.js'),
   markericonpng: getDep('leaflet/dist/images/marker-icon.png', true),
 }
 const templatestr = getDep('./template.html');
@@ -163,10 +163,14 @@ export default function(options) {
     options.center = options.center || '';
     options.zoom = options.zoom || '';
     options.maxZoom = options.maxZoom || 17;
-    options.attribution = options.attribution || 'osm-static-maps | © OpenStreetMap contributors';
     options.tileserverUrl = options.tileserverUrl || 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
     options.vectorserverUrl = options.vectorserverUrl || '';
-    options.vectorserverToken = options.vectorserverToken || 'no-token';
+    options.vectorserverToken = options.vectorserverToken || '';
+    options.vectorserverAttribution =
+      options.vectorserverAttribution === undefined
+        ? true
+        : options.vectorserverAttribution !== false && options.vectorserverAttribution !== 'false';
+    options.attribution = options.attribution || (options.vectorserverUrl ? 'osm-static-maps' : 'osm-static-maps / © OpenStreetMap contributors');
     options.imagemin = options.imagemin || false;
     options.oxipng = options.oxipng || false;
     options.arrows = options.arrows || false;

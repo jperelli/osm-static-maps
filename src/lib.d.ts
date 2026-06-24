@@ -47,7 +47,7 @@ interface OsmStaticMapsOptions {
 
   /**
    * attribution legend watermark
-   * @defaultValue `'osm-static-maps / © OpenStreetMap contributors'`
+   * @defaultValue `'osm-static-maps / © OpenStreetMap contributors'`, or `'osm-static-maps'` when `vectorserverUrl` is set
    */
   attribution?: string;
 
@@ -64,10 +64,20 @@ interface OsmStaticMapsOptions {
   vectorserverUrl?: string;
 
   /**
-   * token of the vector tile server (MVT)
-   * @defaultValue `'no-token'`
+   * token of the vector tile server (MVT). When set, it is sent as an
+   * `Authorization: Bearer <token>` header on every map resource request
+   * (via MapLibre's `transformRequest`).
+   * @defaultValue `undefined`
    */
   vectorserverToken?: string;
+
+  /**
+   * show the vector style's source attributions (gathered from the style.json
+   * sources) in addition to the `attribution` option. When `false`, only the
+   * `attribution` option is shown.
+   * @defaultValue `true`
+   */
+  vectorserverAttribution?: boolean;
 
   /**
    * returns html of the webpage containing the map (instead of a binary image)

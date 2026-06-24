@@ -71,10 +71,11 @@ All parameters have a short and long version. The short version can be used only
 | c | center | center of the map lon,lat floats string | (center of the geojson) or `'-57.9524339,-34.921779'` |
 | z | zoom | zoomlevel of the leaflet map | value of `maxZoom` |
 | Z | maxZoom | max zoomlevel of the leaflet map | `17` |
-| A | attribution | attribution legend | `'osm-static-maps / © OpenStreetMap contributors'` |
+| A | attribution | attribution legend | `'osm-static-maps / © OpenStreetMap contributors'` (or `'osm-static-maps'` when `vectorserverUrl` is set) |
 | t | tileserverUrl | url of a tileserver | `'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'` |
 | m | vectorserverUrl | url of a vector tile server (MVT style.json) | `undefined` |
-| M | vectorserverToken | token of the vector tile server (MVT) | `'no-token'` |
+| M | vectorserverToken | used as `Authorization: Bearer <token>` header on vector map requests | `undefined` |
+|   | vectorserverAttribution | append the vector layers source attributions (CLI: `--no-vectorserverAttribution` to disable) | `true` |
 | D | renderToHtml | returns html of the webpage containing the map (instead of a binary image) | `false` |
 | F | type | format of the image returned (`'jpeg'`/`'png'`) | `'png'` |
 | q | quality | quality of the image returned (`0`-`100`, only for `jpg`) | `100` |

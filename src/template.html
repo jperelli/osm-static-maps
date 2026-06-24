@@ -142,13 +142,23 @@
             {{/if}}
 
             {{#if vectorserverUrl}}
-                var gl = L.mapboxGL({
-                    accessToken: '{{ vectorserverToken }}',
+                var gl = L.maplibreGL({
                     style: '{{{ vectorserverUrl }}}',
                     fadeDuration: 0,
+                    {{#unless vectorserverAttribution}}
+                    attributionControl: { customAttribution: '' },
+                    {{/unless}}
+                    {{#if vectorserverToken}}
+                    transformRequest: function (url, resourceType) {
+                        return {
+                            url: url,
+                            headers: { 'Authorization': 'Bearer {{ vectorserverToken }}' }
+                        };
+                    },
+                    {{/if}}
                 });
                 gl.addTo(map);
-                var backgroundLayer = gl.getMapboxMap();
+                var backgroundLayer = gl.getMaplibreMap();
                 backgroundLayer.on('load', onLoadFn);
             {{else}}
                 {{#if tileserverUrl}}
