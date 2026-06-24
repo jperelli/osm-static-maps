@@ -173,7 +173,7 @@ export default function(options) {
     options.scale = (options.scale && (typeof options.scale === 'string' ? options.scale : JSON.stringify(options.scale))) || false;
     options.markerIconOptions = (options.markerIconOptions && (typeof options.markerIconOptions === 'string' ? options.markerIconOptions : JSON.stringify(options.markerIconOptions))) || false;
     options.style = (options.style && (typeof options.style === 'string' ? options.style : JSON.stringify(options.style))) || false;
-    options.timeout = typeof options.timeout == undefined ? 20000 : options.timeout;
+    options.timeout = options.timeout || 20000;
     options.haltOnConsoleError = !!options.haltOnConsoleError;
 
     (async () => {
