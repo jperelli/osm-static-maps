@@ -95,7 +95,7 @@ function httpGet(url) {
   return new Promise((resolve, reject) => {
     let req = httpx.get(url, (res) => {
       if (res.statusCode !== 200) {
-        reject(`Error ${res.statusCode} trying to get geojson file from ${url}`);
+        reject(new Error(`Error ${res.statusCode} trying to get geojson file from ${url}`));
       }
       res.setEncoding('utf8');
       let rawData = '';
@@ -204,12 +204,12 @@ export default function(options) {
       const page = await browser.getPage();
       await configCache(page);
       try {
-        page.on('error', function (err) { reject(err.toString()) })
-        page.on('pageerror', function (err) { reject(err.toString()) })
+        page.on('error', function (err) { reject(err instanceof Error ? err : new Error(String(err))) })
+        page.on('pageerror', function (err) { reject(err instanceof Error ? err : new Error(String(err))) })
         if (options.haltOnConsoleError) {
           page.on('console', function (msg) {
             if (msg.type() === "error") {
-              reject(JSON.stringify(msg));
+              reject(new Error(`Console error while rendering the map: ${msg.text()}`));
             }
           })
         }
@@ -254,7 +254,7 @@ export default function(options) {
             let newimg = [];
             child.stdout.on('data', data => newimg.push(data));
             child.on('close', () => resolve(Buffer.concat(newimg)));
-            child.on('error', e => reject(e.toString()));
+            child.on('error', e => reject(e instanceof Error ? e : new Error(String(e))));
           } else {
             resolve(imageBinary);
           }
