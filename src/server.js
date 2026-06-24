@@ -52,7 +52,14 @@ const handler = (res, params) => {
     );
   }
   osmsm(params)
-    .then((data) => res.end(data))
+    .then((data) => {
+      if (params.renderToHtml || params.D) {
+        res.type("html");
+      } else {
+        res.type((params.type || params.F) === "jpeg" ? "jpeg" : "png");
+      }
+      res.end(data);
+    })
     .catch((err) => res.status(500).end(err.toString()));
 };
 
