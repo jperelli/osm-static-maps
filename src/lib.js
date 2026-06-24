@@ -10,7 +10,7 @@ let puppeteer;
 
 if (process.env.AWS_LAMBDA_FUNCTION_VERSION) {
   // running on the Vercel platform.
-  chrome = import("chrome-aws-lambda");
+  chrome = (await import("chrome-aws-lambda")).default;
   puppeteer = (await import("puppeteer-core")).default;
 } else {
   // running locally.
