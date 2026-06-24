@@ -1,4 +1,4 @@
-FROM node:22.0
+FROM node:26.3.1
 
 RUN \
     apt-get update \
