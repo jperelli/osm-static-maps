@@ -42,6 +42,13 @@
   },
   "main": "./src/lib.js",
   "types": "./src/lib.d.ts",
+  "files": [
+    "src/cli.js",
+    "src/lib.js",
+    "src/lib.d.ts",
+    "src/server.js",
+    "src/template.html"
+  ],
   "type": "module",
   "bin": {
     "osmsm": "./src/cli.js"

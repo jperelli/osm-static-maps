@@ -1,0 +1,35 @@
+{
+  "name": "osmsm",
+  "version": "1.0.0",
+  "description": "CLI alias for osm-static-maps: create a static image of a map with the features you want",
+  "keywords": [
+    "osm",
+    "openstreetmap",
+    "static",
+    "map",
+    "maps",
+    "leaflet",
+    "geojson",
+    "cli"
+  ],
+  "author": "Julian Perelli",
+  "license": "GPL-2.0-only",
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/jperelli/osm-static-maps.git",
+    "directory": "osmsm"
+  },
+  "type": "module",
+  "bin": {
+    "osmsm": "./bin.js"
+  },
+  "files": [
+    "bin.js"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "osm-static-maps": "*"
+  }
+}

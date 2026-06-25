@@ -10,6 +10,15 @@ Here you have a [demo](http://localhost:3000/?geojson=[{"type":"Feature","proper
 
 ### 1. CLI
 
+The quickest way, with no install required, is via `npx`:
+
+```bash
+npx osmsm --help
+npx osmsm -g '{"type":"Point","coordinates":[-105.01621,39.57422]}' > map.png
+```
+
+Or install it globally to get the `osmsm` command:
+
 ```bash
 sudo npm i -g osm-static-maps
 osmsm --help
@@ -41,6 +50,12 @@ const imageBinaryBuffer = await osmsm({geojson})
 ```
 
 ### 3. Standalone sample server
+
+```bash
+npx osmsm serve
+```
+
+Or install it globally:
 
 ```bash
 sudo npm i -g osm-static-maps
