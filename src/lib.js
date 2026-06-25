@@ -1,4 +1,4 @@
-import { readFileSync } from 'fs';
+import { readFileSync, existsSync } from 'fs';
 import http from 'http';
 import https from "https";
 import handlebars from 'handlebars';
@@ -8,13 +8,97 @@ import { fileURLToPath } from 'url';
 let chrome = { args: [] };
 let puppeteer;
 
-if (process.env.AWS_LAMBDA_FUNCTION_VERSION) {
-  // running on the Vercel platform.
-  chrome = (await import("chrome-aws-lambda")).default;
-  puppeteer = (await import("puppeteer-core")).default;
-} else {
-  // running locally.
-  puppeteer = (await import("puppeteer")).default;
+// Whether the loaded puppeteer ships its own browser (full `puppeteer`) or not
+// (`puppeteer-core`, which needs an explicit executablePath to a system browser).
+let usingBundledBrowser = false;
+
+async function loadPuppeteer() {
+  if (puppeteer) return;
+  if (process.env.AWS_LAMBDA_FUNCTION_VERSION) {
+    chrome = (await import("chrome-aws-lambda")).default;
+    puppeteer = (await import("puppeteer-core")).default;
+  } else {
+    try {
+      puppeteer = (await import("puppeteer")).default;
+      usingBundledBrowser = true;
+    } catch {
+      puppeteer = (await import("puppeteer-core")).default;
+    }
+  }
+}
+
+// Best-effort lookup of a browser executable when using puppeteer-core.
+// Honors PUPPETEER_EXECUTABLE_PATH first, then probes common system paths.
+// Throws a helpful error (listing every path tried) when nothing is found.
+function findSystemBrowser() {
+  // linux and others
+  let systemBrowserCandidates = [
+    "/usr/bin/google-chrome-stable",
+    "/usr/bin/google-chrome",
+    "/usr/bin/chromium-browser",
+    "/usr/bin/chromium",
+    "/usr/bin/microsoft-edge",
+    "/usr/bin/brave-browser",
+    "/snap/bin/chromium",
+  ]
+  if (process.platform === "darwin") {
+    systemBrowserCandidates = [
+      "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+      "/Applications/Chromium.app/Contents/MacOS/Chromium",
+      "/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge",
+      "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser",
+    ];
+  }
+  if (process.platform === "win32") {
+    const roots = [
+      process.env["PROGRAMFILES"],
+      process.env["PROGRAMFILES(X86)"],
+      process.env["LOCALAPPDATA"],
+    ].filter(Boolean);
+    const relatives = [
+      "Google\\Chrome\\Application\\chrome.exe",
+      "Chromium\\Application\\chrome.exe",
+      "Microsoft\\Edge\\Application\\msedge.exe",
+      "BraveSoftware\\Brave-Browser\\Application\\brave.exe",
+    ];
+    systemBrowserCandidates = roots.flatMap((root) => relatives.map((rel) => `${root}\\${rel}`));
+  }
+
+  const tried = [];
+  const envPath = process.env.PUPPETEER_EXECUTABLE_PATH;
+  if (envPath) {
+    tried.push(envPath);
+    if (existsSync(envPath)) return envPath;
+  }
+  for (const candidate of systemBrowserCandidates) {
+    tried.push(candidate);
+    if (existsSync(candidate)) return candidate;
+  }
+  throw new Error(
+    "Could not find a Chrome/Chromium browser to render the map. " +
+    "Set the PUPPETEER_EXECUTABLE_PATH environment variable to your browser " +
+    "executable.\nPaths tried (in order):\n" +
+    tried.map((p) => "  - " + p).join("\n")
+  );
+}
+
+// Resolve the oxipng executable, returning bare "oxipng" (PATH lookup) as a
+// last resort so spawn surfaces ENOENT when it is genuinely missing.
+// Honors OXIPNG_PATH, then common cargo/system install dirs, then falls back to PATH.
+function resolveOxipng() {
+  const home = process.env.HOME || process.env.USERPROFILE || "";
+  const oxipngCandidates = [
+    home && `${home}/.cargo/bin/oxipng`,
+    "/root/.cargo/bin/oxipng",
+    "/usr/local/bin/oxipng",
+    "/usr/bin/oxipng",
+  ].filter(Boolean);
+
+  if (process.env.OXIPNG_PATH) return process.env.OXIPNG_PATH;
+  for (const candidate of oxipngCandidates) {
+    if (existsSync(candidate)) return candidate;
+  }
+  return "oxipng";
 }
 
 function getDep(nodeModulesFile, binary = false) {
@@ -54,7 +138,13 @@ class Browser {
     this.browser = null;
   }
   async launch() {
-    const executablePath = await chrome.executablePath
+    await loadPuppeteer();
+    // chrome.executablePath is set on Lambda/Vercel; bundled puppeteer can launch
+    // with no path. Otherwise (puppeteer-core) locate a system browser.
+    let executablePath = await chrome.executablePath;
+    if (!executablePath && !usingBundledBrowser) {
+      executablePath = findSystemBrowser();
+    }
     return puppeteer.launch({
       args: [...chrome.args, "--no-sandbox", "--disable-setuid-sandbox"],
       defaultViewport: chrome.defaultViewport,
@@ -64,20 +154,20 @@ class Browser {
     });
   }
   async getBrowser() {
-    if (this.openingBrowser) {
-      throw new Error('osm-static-maps is not ready, please wait a few seconds')
-    }
     if (!this.browser || !this.browser.isConnected()) {
-      this.openingBrowser = true;
-      try {
-        this.browser = await this.launch();
+      // Store the in-flight launch promise so concurrent callers await the
+      // same launch instead of erroring or starting a second browser.
+      if (!this.launching) {
+        this.launching = this.launch()
+          .catch((e) => {
+            console.log(e)
+            console.log('Error opening browser')
+            console.log(JSON.stringify(e, undefined, 2))
+            return null;
+          })
+          .finally(() => { this.launching = null; });
       }
-      catch (e) {
-        console.log(e)
-        console.log('Error opening browser')
-        console.log(JSON.stringify(e, undefined, 2))
-      }
-      this.openingBrowser = false;
+      this.browser = await this.launching;
     }
     return this.browser
   }
@@ -242,9 +332,19 @@ export default function(options) {
         });
 
         if (options.imagemin) {
-          const imagemin = (await import("imagemin")).default;
-          const imageminJpegtran = (await import("imagemin-jpegtran")).default;
-          const imageminOptipng = (await import("imagemin-optipng")).default;
+          let imagemin, imageminJpegtran, imageminOptipng;
+          try {
+            imagemin = (await import("imagemin")).default;
+            imageminJpegtran = (await import("imagemin-jpegtran")).default;
+            imageminOptipng = (await import("imagemin-optipng")).default;
+          } catch (e) {
+            reject(new Error(
+              "The --imagemin option requires the optional 'imagemin', 'imagemin-jpegtran' " +
+              "and 'imagemin-optipng' packages, which are not installed (their native " +
+              "build may have failed). Install them manually or use --oxipng instead."
+            ));
+            return;
+          }
           const plugins = []
           if (options.type === 'jpeg') {
             plugins.push(imageminJpegtran());
@@ -261,26 +361,34 @@ export default function(options) {
           })();
         } else {
           if (options.oxipng) {
-            const child = spawn('/root/.cargo/bin/oxipng', ['-o0', '-s', '-']);
+            const child = spawn(resolveOxipng(), ['-o0', '-s', '-']);
             child.stdin.on('error', function() {});
             child.stdin.write(imageBinary);
             child.stdin.end();
             let newimg = [];
             child.stdout.on('data', data => newimg.push(data));
             child.on('close', () => resolve(Buffer.concat(newimg)));
-            child.on('error', e => reject(e instanceof Error ? e : new Error(String(e))));
+            child.on('error', e => {
+              if (e && e.code === 'ENOENT') {
+                reject(new Error(
+                  "The --oxipng option requires the 'oxipng' binary, which could " +
+                  "not be found. Install it (https://github.com/oxipng/oxipng) and " +
+                  "make sure it is on your PATH, or set the OXIPNG_PATH environment " +
+                  "variable to its location."
+                ));
+              } else {
+                reject(e instanceof Error ? e : new Error(String(e)));
+              }
+            });
           } else {
             resolve(Buffer.from(imageBinary));
           }
         }
 
       }
-      catch(e) {
-        page.close();
-        console.log("PAGE CLOSED with err" + e);
-        throw(e);
+      finally {
+        await page.close().catch((e) => console.log("Error closing page: " + e));
       }
-      page.close();
 
     })().catch(reject)
   });

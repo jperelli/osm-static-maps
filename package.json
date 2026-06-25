@@ -20,9 +20,6 @@
     "commander": "^12.1.0",
     "express": "^4.19.2",
     "handlebars": "^4.7.8",
-    "imagemin": "^9.0.0",
-    "imagemin-jpegtran": "7.0.0",
-    "imagemin-optipng": "8.0.0",
     "@types/geojson": "^7946.0.16",
     "@types/leaflet": "^1.9.21",
     "leaflet": "^1.9.4",
@@ -57,6 +54,11 @@
     "nodemon": "^3.1.4",
     "puppeteer": "^23.2.0",
     "vitest": "^4.1.9"
+  },
+  "optionalDependencies": {
+    "imagemin": "^9.0.0",
+    "imagemin-jpegtran": "7.0.0",
+    "imagemin-optipng": "8.0.0"
   },
   "overrides": {
     "puppeteer-core": "^23.2.0"

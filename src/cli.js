@@ -102,8 +102,9 @@ program
     "throw error if there is any console.error(...) when rendering the map image",
     false
   )
-  .action(function(cmd) {
-    const opts = cmd.opts();
+  .action(function(...args) {
+    // commander passes the Command instance as the last action argument.
+    const opts = args[args.length - 1].opts();
 
     // DEBUG
     // process.stderr.write(JSON.stringify(opts, undefined, 2));

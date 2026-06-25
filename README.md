@@ -15,6 +15,9 @@ The quickest way, with no install required, is via `npx`:
 ```bash
 npx osmsm --help
 npx osmsm -g '{"type":"Point","coordinates":[-105.01621,39.57422]}' > map.png
+
+# or, if chrome executable is not found
+PUPPETEER_EXECUTABLE_PATH=/path/to/chrome npx osmsm -g '...' > map.png
 ```
 
 Or install it globally to get the `osmsm` command:
