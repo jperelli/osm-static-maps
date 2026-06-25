@@ -9,7 +9,7 @@
       "email": "jperelli@gmail.com"
     }
   ],
-  "license": "GPLv2",
+  "license": "GPL-2.0-only",
   "repository": {
     "type": "git",
     "url": "http://github.com/jperelli/osm-static-maps.git"
