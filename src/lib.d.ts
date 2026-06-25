@@ -53,7 +53,7 @@ interface OsmStaticMapsOptions {
 
   /**
    * url of a tileserver
-   * @defaultValue `'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'`
+   * @defaultValue `'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'`
    */
   tileserverUrl?: string;
 
@@ -116,16 +116,18 @@ interface OsmStaticMapsOptions {
   arrows?: boolean;
 
   /**
-   * enable render a scale ruler (boolean or [a json options object](https://leafletjs.com/reference-1.6.0.html#control-scale-option))
+   * enable render a scale ruler (boolean or [a json options object](https://leafletjs.com/reference-1.9.4.html#control-scale-option)).
+   * May also be passed as a pre-stringified JSON object.
    * @defaultValue `false`
    */
-  scale?: boolean | Control.ScaleOptions;
+  scale?: boolean | Control.ScaleOptions | string;
 
   /**
-   * set marker icon options ([a json options object](https://leafletjs.com/reference-1.6.0.html#icon-option))
+   * set marker icon options ([a json options object](https://leafletjs.com/reference-1.9.4.html#icon-option)).
+   * May also be passed as a pre-stringified JSON object.
    * @defaultValue `undefined`
    */
-  markerIconOptions?: IconOptions;
+  markerIconOptions?: IconOptions | string;
 
   /**
    * miliseconds until page load throws timeout
@@ -134,17 +136,19 @@ interface OsmStaticMapsOptions {
   timeout?: number;
 
   /**
-   *
+   * style to apply to each rendered feature ([a json options object](https://leafletjs.com/reference-1.9.4.html#path-option)).
+   * Individual features may override it through their `pathOptions` property.
+   * May also be passed as a pre-stringified JSON object.
    * @defaultValue `undefined`
    */
-  style?: PathOptions;
+  style?: PathOptions | string;
 
   /**
    * throw error if there is any `console.error(...)` when rendering the map image
    *
    * @defaultValue `false`
    */
-  haltOnConsoleError?: Boolean;
+  haltOnConsoleError?: boolean;
 }
 
 /** Renders a map controlled by the options passed and returns an image */

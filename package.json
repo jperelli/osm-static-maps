@@ -15,6 +15,7 @@
     "url": "http://github.com/jperelli/osm-static-maps.git"
   },
   "dependencies": {
+    "@maplibre/maplibre-gl-leaflet": "^0.1.0",
     "chrome-aws-lambda": "^10.1.0",
     "commander": "^12.1.0",
     "express": "^4.19.2",
@@ -22,6 +23,8 @@
     "imagemin": "^9.0.0",
     "imagemin-jpegtran": "7.0.0",
     "imagemin-optipng": "8.0.0",
+    "@types/geojson": "^7946.0.16",
+    "@types/leaflet": "^1.9.21",
     "leaflet": "^1.9.4",
     "leaflet-polylinedecorator": "1.6.0",
     "maplibre-gl": "^5.0.0",
@@ -38,6 +41,7 @@
     "installandstartdev": "npm install --loglevel=verbose --foreground-scripts && (cd node_modules/optipng-bin && npm run postinstall) && npm run dev"
   },
   "main": "./src/lib.js",
+  "types": "./src/lib.d.ts",
   "type": "module",
   "bin": {
     "osmsm": "./src/cli.js"
