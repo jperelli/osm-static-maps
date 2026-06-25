@@ -151,3 +151,12 @@ interface OsmStaticMapsOptions {
 declare function _default<T extends OsmStaticMapsOptions>(
   options?: T
 ): Promise<T extends { renderToHtml: true } ? string : Buffer>;
+
+declare namespace _default {
+  /**
+   * Closes the shared headless browser instance, if any. Useful for graceful
+   * shutdown (e.g. serverless teardown or finishing a one-off script). A new
+   * browser is launched automatically on the next render.
+   */
+  export function closeBrowser(): Promise<void>;
+}

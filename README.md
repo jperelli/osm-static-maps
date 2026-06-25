@@ -1,5 +1,7 @@
 # osm-static-maps
 
+[![CI](https://github.com/jperelli/osm-static-maps/actions/workflows/ci.yml/badge.svg)](https://github.com/jperelli/osm-static-maps/actions/workflows/ci.yml)
+
 Openstreetmap static maps is a nodejs lib, CLI and server open source inspired on google static map service
 
 Here you have a [demo](http://localhost:3000/?geojson=[{"type":"Feature","properties":{"party":"Republican"},"geometry":{"type":"Polygon","coordinates":[[[-104.05,48.99],[-97.22,48.98],[-96.58,45.94],[-104.03,45.94],[-104.05,48.99]]]}},{"type":"Feature","properties":{"party":"Democrat"},"geometry":{"type":"Polygon","coordinates":[[[-109.05,41.00],[-102.06,40.99],[-102.03,36.99],[-109.04,36.99],[-109.05,41.00]]]}}]&height=300&width=300 "Just what I wanted!"). Also a [dynamic version](http://localhost:3000/dynamic?geojson=[{"type":"Feature","properties":{"party":"Republican"},"geometry":{"type":"Polygon","coordinates":[[[-104.05,48.99],[-97.22,48.98],[-96.58,45.94],[-104.03,45.94],[-104.05,48.99]]]}},{"type":"Feature","properties":{"party":"Democrat"},"geometry":{"type":"Polygon","coordinates":[[[-109.05,41.00],[-102.06,40.99],[-102.03,36.99],[-109.04,36.99],[-109.05,41.00]]]}}]&height=300&width=300 "Wow it gets even better!!") of the demo, for testing purposes.
@@ -91,6 +93,21 @@ All parameters have a short and long version. The short version can be used only
 * Note on markerIconOptions: it's also accepted a markerIconOptions attribute in the geojson feature, for example `{"type":"Point","coordinates":[-105.01621,39.57422],"markerIconOptions":{"iconUrl":"https://leafletjs.com/examples/custom-icons/leaf-red.png"}}`
 
 * Note on style: it's also accepted a pathOptions attribute in the geojson feature, for example `{"type":"Polygon","coordinates":[[[-56.698,-36.413],[-56.716,-36.348],[-56.739,-36.311]]],"pathOptions":{"color":"#FF5555"}}` (also remember that the `#` char needs to be passed as `%23` if you are using GET params)
+
+## Development
+
+```bash
+git clone git@github.com:jperelli/osm-static-maps.git
+cd osm-static-maps
+npm install
+npm run dev    # start the sample server with autoreload
+npm test       # run the test suite (vitest)
+```
+
+Running the library/CLI/server requires **Node >= 20** (see `engines`). The test
+toolchain (vitest/vite) is stricter and needs **Node 20.19+, 22.12+, or 24+** —
+this only matters for contributors running `npm test`, not for consumers of the
+published package. The CI matrix runs the tests on Node 20, 22, 24 and 26.
 
 ## Design considerations & architecture
 

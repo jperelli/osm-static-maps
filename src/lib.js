@@ -85,8 +85,18 @@ class Browser {
     const browser = await this.getBrowser()
     return browser.newPage()
   }
+  async close() {
+    if (this.browser && this.browser.isConnected()) {
+      await this.browser.close();
+    }
+    this.browser = null;
+  }
 }
 const browser = new Browser();
+
+export async function closeBrowser() {
+  await browser.close();
+}
 
 
 function httpGet(url) {
@@ -260,7 +270,7 @@ export default function(options) {
             child.on('close', () => resolve(Buffer.concat(newimg)));
             child.on('error', e => reject(e instanceof Error ? e : new Error(String(e))));
           } else {
-            resolve(imageBinary);
+            resolve(Buffer.from(imageBinary));
           }
         }
 

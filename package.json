@@ -25,7 +25,6 @@
     "leaflet": "^1.9.4",
     "leaflet-polylinedecorator": "1.6.0",
     "maplibre-gl": "^5.0.0",
-    "@maplibre/maplibre-gl-leaflet": "^0.1.0",
     "puppeteer-core": "^23.2.0"
   },
   "engines": {
@@ -34,6 +33,8 @@
   "scripts": {
     "start": "node src/cli.js serve",
     "dev": "nodemon -e js,html src/cli.js serve",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "installandstartdev": "npm install --loglevel=verbose --foreground-scripts && (cd node_modules/optipng-bin && npm run postinstall) && npm run dev"
   },
   "main": "./src/lib.js",
@@ -43,7 +44,8 @@
   },
   "devDependencies": {
     "nodemon": "^3.1.4",
-    "puppeteer": "^23.2.0"
+    "puppeteer": "^23.2.0",
+    "vitest": "^4.1.9"
   },
   "overrides": {
     "puppeteer-core": "^23.2.0"

@@ -1,0 +1,27 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [20, 22, 24, 26]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+      - run: npm ci
+      # Smoke check: the library and CLI must load without syntax/runtime errors
+      - run: node -e "import('./src/lib.js').then(() => console.log('lib loads ok'))"
+      - run: node src/cli.js --help
+      # Full test suite (renders real images via the bundled headless chromium)
+      - run: npm test
