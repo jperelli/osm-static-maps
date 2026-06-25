@@ -29,10 +29,11 @@ async function loadPuppeteer() {
 
 // Path to the browser that the bundled `puppeteer` package downloads. Returns
 // null if puppeteer can't tell us (older API or no browser configured) so the
-// caller can fall back to a system browser.
-function bundledBrowserPath() {
+// caller can fall back to a system browser. `executablePath()` returns a
+// Promise since puppeteer v25.
+async function bundledBrowserPath() {
   try {
-    return puppeteer.executablePath();
+    return await puppeteer.executablePath();
   } catch {
     return null;
   }
@@ -157,7 +158,7 @@ class Browser {
       // otherwise (puppeteer-core, or a missing/version-mismatched bundled
       // browser) locate a system browser. PUPPETEER_EXECUTABLE_PATH always wins.
       const bundled = usingBundledBrowser && !process.env.PUPPETEER_EXECUTABLE_PATH
-        ? bundledBrowserPath()
+        ? await bundledBrowserPath()
         : null;
       executablePath = bundled && existsSync(bundled) ? bundled : findSystemBrowser();
     }
@@ -168,11 +169,11 @@ class Browser {
       defaultViewport: chrome.defaultViewport,
       executablePath,
       headless: true,
-      ignoreHTTPSErrors: true,
+      acceptInsecureCerts: true,
     });
   }
   async getBrowser() {
-    if (!this.browser || !this.browser.isConnected()) {
+    if (!this.browser || !this.browser.connected) {
       // Store the in-flight launch promise so concurrent callers await the
       // same launch instead of erroring or starting a second browser.
       if (!this.launching) {
@@ -194,7 +195,7 @@ class Browser {
     return browser.newPage()
   }
   async close() {
-    if (this.browser && this.browser.isConnected()) {
+    if (this.browser && this.browser.connected) {
       await this.browser.close();
     }
     this.browser = null;

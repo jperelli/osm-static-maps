@@ -16,19 +16,19 @@
   },
   "dependencies": {
     "@maplibre/maplibre-gl-leaflet": "^0.1.0",
-    "chrome-aws-lambda": "^10.1.0",
-    "commander": "^12.1.0",
-    "express": "^4.19.2",
-    "handlebars": "^4.7.8",
     "@types/geojson": "^7946.0.16",
     "@types/leaflet": "^1.9.21",
+    "chrome-aws-lambda": "^10.1.0",
+    "commander": "^15.0.0",
+    "express": "^5.2.1",
+    "handlebars": "^4.7.8",
     "leaflet": "^1.9.4",
     "leaflet-polylinedecorator": "1.6.0",
     "maplibre-gl": "^5.0.0",
-    "puppeteer-core": "^23.2.0"
+    "puppeteer-core": "^25.2.1"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=22.12.0"
   },
   "scripts": {
     "start": "node src/cli.js serve",
@@ -52,15 +52,15 @@
   },
   "devDependencies": {
     "nodemon": "^3.1.4",
-    "puppeteer": "^23.2.0",
     "vitest": "^4.1.9"
   },
   "optionalDependencies": {
     "imagemin": "^9.0.0",
-    "imagemin-jpegtran": "7.0.0",
-    "imagemin-optipng": "8.0.0"
+    "imagemin-jpegtran": "8.0.0",
+    "imagemin-optipng": "8.0.0",
+    "puppeteer": "^25.2.1"
   },
   "overrides": {
-    "puppeteer-core": "^23.2.0"
+    "puppeteer-core": "^25.2.1"
   }
 }
