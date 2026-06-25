@@ -104,7 +104,7 @@ function resolveOxipng() {
 function getDep(nodeModulesFile, binary = false) {
   const abspath = fileURLToPath(import.meta.resolve(nodeModulesFile));
   if (binary) {
-    return new Buffer.from(readFileSync(abspath), 'binary').toString('base64');
+    return Buffer.from(readFileSync(abspath), 'binary').toString('base64');
   }
   else {
     return readFileSync(abspath, 'utf8');

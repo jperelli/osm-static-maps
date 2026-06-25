@@ -133,7 +133,7 @@ published package. The CI matrix runs the tests on Node 20, 22, 24 and 26.
 
 ## LICENSE
 
- - GPLv2
+ - GPL-2.0-only
 
 ## Credits
 
