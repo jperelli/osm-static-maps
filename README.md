@@ -84,10 +84,10 @@ All parameters have a short and long version. The short version can be used only
 | x | imagemin | enable lossless compression with [optipng](https://github.com/imagemin/imagemin-optipng) / [jpegtran](https://github.com/imagemin/imagemin-jpegtran) | `false` |
 | X | oxipng | enable losslsess compression with [oxipng](https://github.com/shssoichiro/oxipng) | `false` |
 | a | arrows | render arrows to show the direction of linestrings | `false` |
-| s | scale | enable render a scale ruler (boolean or [a json options object](https://leafletjs.com/reference-1.6.0.html#control-scale-option)) | `false` |
+| s | scale | enable render a scale ruler (boolean or [a json options object](https://leafletjs.com/reference-1.9.4.html#control-scale-option)) | `false` |
 | T | timeout | miliseconds until page load throws timeout | `20000` |
-| k | markerIconOptions | set marker icon options ([a json options object](https://leafletjs.com/reference-1.6.0.html#icon-option)) *see note | `undefined` (leaflet's default marker) |
-| S | style | style to apply to each feature ([a json options object](https://leafletjs.com/reference-1.6.0.html#path-option)) *see note | `undefined` (leaflet's default) |
+| k | markerIconOptions | set marker icon options ([a json options object](https://leafletjs.com/reference-1.9.4.html#icon-option)) *see note | `undefined` (leaflet's default marker) |
+| S | style | style to apply to each feature ([a json options object](https://leafletjs.com/reference-1.9.4.html#path-option)) *see note | `undefined` (leaflet's default) |
 | e | haltOnConsoleError | throw error if there is any `console.error(...)` when rendering the map image | `false` |
 
 * Note on markerIconOptions: it's also accepted a markerIconOptions attribute in the geojson feature, for example `{"type":"Point","coordinates":[-105.01621,39.57422],"markerIconOptions":{"iconUrl":"https://leafletjs.com/examples/custom-icons/leaf-red.png"}}`

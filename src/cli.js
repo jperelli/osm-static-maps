@@ -80,12 +80,12 @@ program
   )
   .option(
     "-s, --scale [json string]",
-    "Enable render a scale ruler (see options in https://leafletjs.com/reference-1.6.0.html#control-scale-option)",
+    "Enable render a scale ruler (see options in https://leafletjs.com/reference-1.9.4.html#control-scale-option)",
     false
   )
   .option(
     "-k, --markerIconOptions <json string>",
-    "Set marker icon options (see doc in https://leafletjs.com/reference-1.6.0.html#icon-option)"
+    "Set marker icon options (see doc in https://leafletjs.com/reference-1.9.4.html#icon-option)"
   )
   .option(
     "-T, --timeout <number>",
@@ -95,7 +95,7 @@ program
   )
   .option(
     "-S, --style <json string>",
-    "Set path style options (see doc in https://leafletjs.com/reference-1.6.0.html#path-option)"
+    "Set path style options (see doc in https://leafletjs.com/reference-1.9.4.html#path-option)"
   )
   .option(
     "-e, --haltOnConsoleError",
