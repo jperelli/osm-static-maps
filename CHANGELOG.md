@@ -1,3 +1,43 @@
+# 5.0.0
+
+Modernize package with multiple improvements
+
+### Major
+
+ - **Breaking**: Require Node `>=22.12.0` (was `>=12`). The code already relied on features unavailable in older Node versions (top-level await, `import.meta.resolve`, JSON import attributes), and `commander@15` requires Node `>=22.12.0`, so it could not run on older versions. `engines.node` now reflects this.
+ - **Breaking**: `vectorserverToken` no longer defaults to `'no-token'` (now `undefined`) and is sent as an `Authorization: Bearer <token>` header (via MapLibre's `transformRequest`) only when provided
+ - **Breaking**: Improve binary resolution with cross-platform path fallbacks for the browser (Chrome/Chromium/Edge/Brave) and for `oxipng`/`jpegtran`
+ - Bump Docker image and add asdf `.tool-versions` to latest Node `26.3.1`
+ - Migrate vector tile rendering from the unmaintained `mapbox-gl` to the fully open source `maplibre-gl`. 
+ - Add `vectorserverAttribution` option (default `true`) to control appending the vector style's source attributions
+ - Upgrade Express from `4.x` to `5.x`. The server only uses simple string routes and APIs unaffected by the v5 removals; note Express 5 defaults to the "simple" query parser, so bracket/array query params (`?arr[]=1`) are no longer parsed into arrays (osmsm uses flat query params only)
+ - Upgrade `puppeteer`/`puppeteer-core` from `23.x` to `25.x`, adapting to their breaking changes: `ignoreHTTPSErrors` launch option renamed to `acceptInsecureCerts` (removed in v24), `Browser.isConnected()` method replaced with the `browser.connected` property (removed in v25), and `executablePath()` now returning a `Promise` (v25). v25 is ESM-only and requires Node `>=22`, both already satisfied
+ - Update dependencies to latest available
+
+### Minor Fixes
+
+ - Fix `npx osmsm` (incl. `--help`) doing nothing: the browser is now loaded lazily so the CLI no longer requires a browser package just to start, and the `osmsm` alias pins `osm-static-maps@^5.0.0`
+ - Fix the CLI render command crashing with `cmd.opts is not a function` (regression from the commander v12 upgrade; the action now reads options from the Command instance)
+ - When using `puppeteer-core` (e.g. via `npx`), auto-discover a system Chrome/Chromium/Edge/Brave binary across common OS paths, honoring `PUPPETEER_EXECUTABLE_PATH`; if none is found, error with the list of paths tried
+ - Make `imagemin`/`imagemin-jpegtran`/`imagemin-optipng` optional dependencies so a failed native build (jpegtran/optipng) no longer aborts install; `--imagemin` now errors clearly if they are missing
+ - `--oxipng` now resolves the `oxipng` binary across common locations (honoring an `OXIPNG_PATH` override) instead of a single hardcoded path, and reports a clear error when it cannot be found
+ - Fix `timeout` default never applying
+ - Set `Content-Type` header on server responses so images render inline instead of downloading
+ - Fix import of chromium on the Vercel/Lambda platform
+ - Improve Error rejections so that stack traces are not lost
+ - Always resolve with a `Buffer` (puppeteer now returns a `Uint8Array`), matching the documented `Promise<Buffer>` return type
+
+### Internal Quality
+
+ - add a `ci.yml` workflow that smoke-tests the lib and CLI on Node 20/22/24/26
+ - Add a test suite (vitest): template/option tests plus hermetic image-render integration tests; run with `npm test`
+ - Fix and complete the TypeScript definitions
+ - Add `closeBrowser()` named export to gracefully shut down the shared headless browser
+ - Upgrade links to leaflet latest docs
+ - Upgrade to correct GPL license version
+ - Add an `osmsm` alias package so the CLI can be run directly with `npx osmsm`
+ - Add a `files` whitelist so the published package ships only runtime sources
+
 # 4.0.2
 
 Fix vector map labels
