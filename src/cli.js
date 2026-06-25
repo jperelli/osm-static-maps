@@ -1,7 +1,20 @@
 #!/usr/bin/env node
 
+import { networkInterfaces } from "os";
 import { program } from "commander";
-import osmsm from "./lib.js";
+import osmsm, { warmupBrowser } from "./lib.js";
+
+function getLocalIp() {
+  const interfaces = networkInterfaces();
+  for (const name of Object.keys(interfaces)) {
+    for (const iface of interfaces[name]) {
+      if (iface.family === "IPv4" && !iface.internal) {
+        return iface.address;
+      }
+    }
+  }
+  return "localhost";
+}
 import packagejson from "../package.json" with { type: 'json' };
 
 program
@@ -135,8 +148,11 @@ program
   .action(async function(cmd) {
     const server = (await import("./server.js")).default;
     const port = cmd.port || process.env.PORT || 3000;
+    // Launch chromium up front so the "Launching chromium" log appears at
+    // startup (before request logs) and the first request isn't slowed by it.
+    await warmupBrowser();
     server.listen(port, function() {
-      console.log("osmsm server listening on port " + port);
+      console.log("osmsm server listening on http://" + getLocalIp() + ":" + port);
     });
   });
 

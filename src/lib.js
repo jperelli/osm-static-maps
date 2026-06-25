@@ -27,6 +27,17 @@ async function loadPuppeteer() {
   }
 }
 
+// Path to the browser that the bundled `puppeteer` package downloads. Returns
+// null if puppeteer can't tell us (older API or no browser configured) so the
+// caller can fall back to a system browser.
+function bundledBrowserPath() {
+  try {
+    return puppeteer.executablePath();
+  } catch {
+    return null;
+  }
+}
+
 // Best-effort lookup of a browser executable when using puppeteer-core.
 // Honors PUPPETEER_EXECUTABLE_PATH first, then probes common system paths.
 // Throws a helpful error (listing every path tried) when nothing is found.
@@ -139,12 +150,19 @@ class Browser {
   }
   async launch() {
     await loadPuppeteer();
-    // chrome.executablePath is set on Lambda/Vercel; bundled puppeteer can launch
-    // with no path. Otherwise (puppeteer-core) locate a system browser.
+    // chrome.executablePath is set on Lambda/Vercel.
     let executablePath = await chrome.executablePath;
-    if (!executablePath && !usingBundledBrowser) {
-      executablePath = findSystemBrowser();
+    if (!executablePath) {
+      // Prefer the bundled puppeteer browser when it's actually installed;
+      // otherwise (puppeteer-core, or a missing/version-mismatched bundled
+      // browser) locate a system browser. PUPPETEER_EXECUTABLE_PATH always wins.
+      const bundled = usingBundledBrowser && !process.env.PUPPETEER_EXECUTABLE_PATH
+        ? bundledBrowserPath()
+        : null;
+      executablePath = bundled && existsSync(bundled) ? bundled : findSystemBrowser();
     }
+    // Log to stderr so it doesn't corrupt the image binary piped to stdout.
+    console.error(`Launching chromium from: ${executablePath || "(puppeteer default)"}`);
     return puppeteer.launch({
       args: [...chrome.args, "--no-sandbox", "--disable-setuid-sandbox"],
       defaultViewport: chrome.defaultViewport,
@@ -186,6 +204,12 @@ const browser = new Browser();
 
 export async function closeBrowser() {
   await browser.close();
+}
+
+// Eagerly launch chromium (e.g. at server startup) so the launch happens and
+// is logged before the first request, instead of lazily on first render.
+export async function warmupBrowser() {
+  await browser.getBrowser();
 }
 
 
