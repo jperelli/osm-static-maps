@@ -1,0 +1,17 @@
+# Development override: builds the `dev` target (nodemon + dev dependencies)
+# and bind-mounts the sources so the server reloads on change.
+#
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml exec osmsm npm test
+
+services:
+
+  osmsm:
+    image: osm-static-maps:dev
+    build:
+      context: .
+      target: dev
+    volumes:
+      - ./src:/app/src
+      - ./test:/app/test
+    restart: "no"

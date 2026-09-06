@@ -2,7 +2,7 @@
 
 import { networkInterfaces } from "os";
 import { program } from "commander";
-import osmsm, { warmupBrowser } from "./lib.js";
+import osmsm, { warmupBrowser, closeBrowser } from "./lib.js";
 
 function getLocalIp() {
   const interfaces = networkInterfaces();
@@ -154,6 +154,17 @@ program
     server.listen(port, function() {
       console.log("osmsm server listening on http://" + getLocalIp() + ":" + port);
     });
+    // puppeteer installs its own SIGTERM handler that only closes the browser,
+    // which would otherwise leave the node process running (e.g. `docker stop`
+    // waiting until it is killed).
+    const shutdown = (signal) => {
+      console.log(`${signal} received, shutting down`);
+      server.close();
+      setTimeout(() => process.exit(0), 5000).unref();
+      closeBrowser().finally(() => process.exit(0));
+    };
+    process.on("SIGTERM", () => shutdown("SIGTERM"));
+    process.on("SIGINT", () => shutdown("SIGINT"));
   });
 
 program.on("--help", function() {

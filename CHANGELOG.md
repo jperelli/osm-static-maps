@@ -1,3 +1,9 @@
+# Unreleased
+
+ - Production-ready Docker image (refs #20): multi-stage `Dockerfile` with a `production` target as default (`npm ci --omit=dev` at build time, `node` instead of `nodemon`, no source bind mount, non-root `node` user, `tini` init, `HEALTHCHECK` on `/health`, Debian's Chromium + a pinned prebuilt `oxipng`) and a `dev` target; `Dockerfile.prod` and the `installandstartdev` script are removed. `docker-compose.yml` now runs the production image (`ghcr.io/jperelli/osm-static-maps`), with `docker-compose.dev.yml` as the development override (nodemon + bind-mounted sources)
+ - Add a `docker.yml` workflow that builds and smoke-tests the image on push/PR and publishes it to GHCR (and optionally Docker Hub, when `DOCKERHUB_USERNAME`/`DOCKERHUB_TOKEN` secrets are set) on releases
+ - `osmsm serve` now shuts down gracefully on `SIGTERM`/`SIGINT` (closes the server and the shared browser), so `docker stop` returns immediately instead of waiting for the kill timeout
+
 # 5.0.0
 
 Modernize package with multiple improvements

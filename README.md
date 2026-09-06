@@ -65,12 +65,25 @@ sudo npm i -g osm-static-maps
 osmsm serve
 ```
 
-Or you can use docker-compose
+Or you can use Docker. The image bundles Node, Chromium and `oxipng`, runs as a
+non-root user and exposes the server on port `3000`:
+
+```bash
+docker run --rm -p 3000:3000 --shm-size=512m ghcr.io/jperelli/osm-static-maps
+curl -g 'http://localhost:3000/?geojson={"type":"Point","coordinates":[-105.01621,39.57422]}' > map.png
+```
+
+Or build and run it yourself with Docker Compose:
+
 ```bash
 git clone git@github.com:jperelli/osm-static-maps.git
 cd osm-static-maps
-docker-compose up
+docker compose up --build
 ```
+
+**Warning**: the sample server passes most request parameters to the map page
+without sanitizing them, so it is vulnerable to template injection. Do not
+expose it to untrusted clients; put it behind your own service instead.
 
 ### 4. Cloud service
 
@@ -121,6 +134,20 @@ npm install
 npm run dev    # start the sample server with autoreload
 npm test       # run the test suite (vitest)
 ```
+
+Or without a local Node/Chromium install, using the `dev` Docker target
+(nodemon + dev dependencies, sources bind-mounted):
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
+docker compose -f docker-compose.yml -f docker-compose.dev.yml exec osmsm npm test
+```
+
+The production image is built and smoke-tested by `.github/workflows/docker.yml`
+on every push/PR. On GitHub releases it is published to
+`ghcr.io/jperelli/osm-static-maps` (using the built-in `GITHUB_TOKEN`) and,
+if the `DOCKERHUB_USERNAME`/`DOCKERHUB_TOKEN` repository secrets are set, to
+Docker Hub as well.
 
 Running the library/CLI/server requires **Node >= 20** (see `engines`). The test
 toolchain (vitest/vite) is stricter and needs **Node 20.19+, 22.12+, or 24+** —
