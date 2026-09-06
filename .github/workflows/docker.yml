@@ -1,0 +1,105 @@
+# Builds the production Docker image and smoke-tests it (health endpoint + a
+# real render) on every push/PR. On releases (and manual runs) the image is also
+# published:
+#   - always to GitHub Container Registry (ghcr.io/<owner>/osm-static-maps),
+#     authenticated with the built-in GITHUB_TOKEN (no setup needed).
+#   - optionally to Docker Hub, only if the repository secrets
+#     DOCKERHUB_USERNAME and DOCKERHUB_TOKEN are configured
+#     (Settings > Secrets and variables > Actions).
+
+name: Docker
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  release:
+    types: [created]
+  workflow_dispatch:
+
+env:
+  # Publish only on releases and manual runs, never for pushes/PRs.
+  PUBLISH: ${{ github.event_name == 'release' || github.event_name == 'workflow_dispatch' }}
+  DOCKERHUB_ENABLED: ${{ secrets.DOCKERHUB_USERNAME != '' && secrets.DOCKERHUB_TOKEN != '' }}
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build image (linux/amd64) for the smoke test
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          load: true
+          tags: osm-static-maps:smoke
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Smoke test
+        run: |
+          set -eux
+          docker run -d --name osmsm -p 3000:3000 osm-static-maps:smoke
+          for i in $(seq 1 30); do
+            if curl -fs http://localhost:3000/health; then break; fi
+            sleep 2
+          done
+          curl -fs http://localhost:3000/health
+          curl -gfs -o map.png 'http://localhost:3000/?geojson={"type":"Point","coordinates":[-105.01621,39.57422]}&width=256&height=256'
+          file map.png | grep -q 'PNG image data, 256 x 256'
+          curl -gfs -o map-oxipng.png 'http://localhost:3000/?geojson={"type":"Point","coordinates":[-105.01621,39.57422]}&width=256&height=256&oxipng=true'
+          file map-oxipng.png | grep -q 'PNG image data, 256 x 256'
+          docker inspect --format '{{.Config.User}}' osm-static-maps:smoke | grep -q '^node$'
+          docker logs osmsm
+          timeout 15 docker stop osmsm
+          docker rm osmsm
+
+      - name: Log in to GitHub Container Registry
+        if: env.PUBLISH == 'true'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Log in to Docker Hub
+        if: env.PUBLISH == 'true' && env.DOCKERHUB_ENABLED == 'true'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Image tags
+        id: meta
+        if: env.PUBLISH == 'true'
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ghcr.io/${{ github.repository }}
+            name=docker.io/${{ secrets.DOCKERHUB_USERNAME }}/osm-static-maps,enable=${{ env.DOCKERHUB_ENABLED == 'true' }}
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=raw,value=latest,enable=${{ github.event_name == 'release' }}
+            type=raw,value=edge,enable=${{ github.event_name == 'workflow_dispatch' }}
+
+      - name: Publish image (linux/amd64, linux/arm64)
+        if: env.PUBLISH == 'true'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

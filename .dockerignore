@@ -1,8 +1,11 @@
+.git
 .github
 node_modules
 .dockerignore
 .gitignore
+.tool-versions
 *.md
 docker*
 Docker*
 LICENSE
+osmsm

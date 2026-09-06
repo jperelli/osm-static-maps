@@ -34,8 +34,7 @@
     "start": "node src/cli.js serve",
     "dev": "nodemon -e js,html src/cli.js serve",
     "test": "vitest run",
-    "test:watch": "vitest",
-    "installandstartdev": "npm install --loglevel=verbose --foreground-scripts && (cd node_modules/optipng-bin && npm run postinstall) && npm run dev"
+    "test:watch": "vitest"
   },
   "main": "./src/lib.js",
   "types": "./src/lib.d.ts",

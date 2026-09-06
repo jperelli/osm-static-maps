@@ -1,11 +1,11 @@
-version: "3.2"
-
 services:
 
   osmsm:
+    image: ghcr.io/jperelli/osm-static-maps:latest
     build: .
     ports:
       - 3000:3000
-    volumes:
-      - .:/app
+    # chromium uses /dev/shm for rendering; docker's default 64mb is too small
+    # for large images
+    shm_size: 512m
     restart: unless-stopped
