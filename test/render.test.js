@@ -67,6 +67,20 @@ describe('image rendering', () => {
     expect(img[2]).toBe(0xff);
   });
 
+  it('renders points with radius / radiusPixels as circles without console errors', async () => {
+    const geojson = {
+      type: 'FeatureCollection',
+      features: [
+        { type: 'Feature', properties: { radius: 500 }, geometry: { type: 'Point', coordinates: [-105.01621, 39.57422] } },
+        { type: 'Point', coordinates: [-105.02621, 39.57422], radius: 300, pathOptions: { color: '#FF5555' } },
+        { type: 'Point', coordinates: [-105.03621, 39.57422], radiusPixels: 20 },
+      ],
+    };
+    const img = await osmsm({ geojson, tileserverUrl, haltOnConsoleError: true });
+    expect(Buffer.isBuffer(img)).toBe(true);
+    expect(img.subarray(0, 8).equals(PNG_SIGNATURE)).toBe(true);
+  });
+
   it('renders without any geojson (empty map)', async () => {
     const img = await osmsm({ tileserverUrl });
     expect(Buffer.isBuffer(img)).toBe(true);

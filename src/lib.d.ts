@@ -2,9 +2,41 @@ import { Control, IconOptions, PathOptions } from "leaflet";
 
 export = _default;
 
+/**
+ * Extra attributes accepted on each geojson feature (on the `Feature` itself,
+ * on its `geometry` or inside its `properties`) to control how it is drawn.
+ */
+interface OsmStaticMapsFeatureAttributes {
+  /**
+   * Draw a `Point` as a circle of this radius in meters
+   * ([L.circle](https://leafletjs.com/reference-1.9.4.html#circle))
+   */
+  radius?: number;
+
+  /**
+   * Draw a `Point` as a circle of this radius in pixels, constant regardless
+   * of the zoom level ([L.circleMarker](https://leafletjs.com/reference-1.9.4.html#circlemarker)).
+   * Ignored when `radius` is also set.
+   */
+  radiusPixels?: number;
+
+  /**
+   * Per-feature style, merged on top of the `style` option
+   * ([a json options object](https://leafletjs.com/reference-1.9.4.html#path-option))
+   */
+  pathOptions?: PathOptions;
+
+  /**
+   * Per-feature marker icon, overrides the `markerIconOptions` option
+   * ([a json options object](https://leafletjs.com/reference-1.9.4.html#icon-option))
+   */
+  markerIconOptions?: IconOptions;
+}
+
 interface OsmStaticMapsOptions {
   /**
-   * Geojson object to be rendered in the map
+   * Geojson object to be rendered in the map. Features may carry the extra
+   * attributes described in `OsmStaticMapsFeatureAttributes`.
    * @defaultValue `undefined`
    */
   geojson?: string | GeoJSON.GeoJSON;

@@ -112,6 +112,8 @@ All parameters have a short and long version. The short version can be used only
 
 * Note on style: it's also accepted a pathOptions attribute in the geojson feature, for example `{"type":"Polygon","coordinates":[[[-56.698,-36.413],[-56.716,-36.348],[-56.739,-36.311]]],"pathOptions":{"color":"#FF5555"}}` (also remember that the `#` char needs to be passed as `%23` if you are using GET params)
 
+* Note on circles: GeoJSON has no circle geometry, so a `Point` feature is drawn as a circle when it has a `radius` attribute (in **meters**, rendered with [L.circle](https://leafletjs.com/reference-1.9.4.html#circle)) or a `radiusPixels` attribute (in **pixels**, constant size regardless of zoom, rendered with [L.circleMarker](https://leafletjs.com/reference-1.9.4.html#circlemarker)), for example `{"type":"Point","coordinates":[-105.01621,39.57422],"radius":500,"pathOptions":{"color":"#FF5555"}}`. Circles are styled with the `style` option and the per-feature `pathOptions` like any other path. The `radius`, `radiusPixels`, `pathOptions` and `markerIconOptions` attributes are looked up on the feature itself, on its `geometry` and on its `properties` object (e.g. `{"type":"Feature","properties":{"radius":500},"geometry":{"type":"Point","coordinates":[-105.01621,39.57422]}}`)
+
 ## Development
 
 ```bash
