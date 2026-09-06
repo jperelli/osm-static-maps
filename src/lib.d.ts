@@ -151,6 +151,39 @@ interface OsmStaticMapsOptions {
   haltOnConsoleError?: boolean;
 }
 
+interface CacheOptions {
+  /**
+   * maximum number of rendered images kept in memory (LRU eviction).
+   * `0` keeps nothing in memory (only useful together with `dir`)
+   * @defaultValue `100`
+   */
+  max?: number;
+
+  /**
+   * seconds until a cached image expires
+   * @defaultValue `3600`
+   */
+  ttl?: number;
+
+  /**
+   * directory where cached images are also persisted, so they survive
+   * restarts and can be shared between processes
+   * @defaultValue `undefined` (memory only)
+   */
+  dir?: string;
+}
+
+interface RenderCache {
+  /** number of images currently held in memory */
+  readonly size: number;
+  get(key: string): Promise<Buffer | undefined>;
+  has(key: string): Promise<boolean>;
+  set(key: string, image: Buffer): Promise<void>;
+  delete(key: string): Promise<void>;
+  /** drops every cached image (memory and, if configured, disk) */
+  clear(): Promise<void>;
+}
+
 /** Renders a map controlled by the options passed and returns an image */
 declare function _default<T extends OsmStaticMapsOptions>(
   options?: T
@@ -163,4 +196,21 @@ declare namespace _default {
    * browser is launched automatically on the next render.
    */
   export function closeBrowser(): Promise<void>;
+
+  /**
+   * Enables caching of rendered images (keyed by their render options) for
+   * every subsequent render in this process, replacing any previous cache.
+   * Pass a falsy value to disable caching. Returns the active cache, if any.
+   */
+  export function configureCache(options?: CacheOptions | false | null): RenderCache | null;
+
+  /** The cache enabled with `configureCache`, or `null` when caching is off */
+  export function getCache(): RenderCache | null;
+
+  /**
+   * Key under which the image rendered with these options is (or would be)
+   * cached. Options that don't affect the image (`timeout`,
+   * `haltOnConsoleError`, `renderToHtml`) are ignored.
+   */
+  export function cacheKey(options?: OsmStaticMapsOptions): string;
 }

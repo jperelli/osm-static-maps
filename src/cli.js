@@ -2,7 +2,7 @@
 
 import { networkInterfaces } from "os";
 import { program } from "commander";
-import osmsm, { warmupBrowser } from "./lib.js";
+import osmsm, { warmupBrowser, configureCache } from "./lib.js";
 
 function getLocalIp() {
   const interfaces = networkInterfaces();
@@ -145,9 +145,33 @@ program
 program
   .command("serve")
   .option("-p, --port <number>", "Port number to listen")
+  .option(
+    "--cache-max <number>",
+    "Number of rendered images to keep in an in-memory cache (0 disables it)",
+    Number,
+    Number(process.env.CACHE_MAX) || 0
+  )
+  .option(
+    "--cache-ttl <seconds>",
+    "Seconds until a cached image expires",
+    Number,
+    Number(process.env.CACHE_TTL) || 3600
+  )
+  .option(
+    "--cache-dir <path>",
+    "Directory to also persist cached images to (survives restarts)",
+    process.env.CACHE_DIR
+  )
   .action(async function(cmd) {
     const server = (await import("./server.js")).default;
     const port = cmd.port || process.env.PORT || 3000;
+    const cache = configureCache({ max: cmd.cacheMax, ttl: cmd.cacheTtl, dir: cmd.cacheDir });
+    if (cache) {
+      console.log(
+        `Render cache enabled: max=${cache.max} ttl=${cache.ttl}s` +
+          (cache.dir ? ` dir=${cache.dir}` : "")
+      );
+    }
     // Launch chromium up front so the "Launching chromium" log appears at
     // startup (before request logs) and the first request isn't slowed by it.
     await warmupBrowser();

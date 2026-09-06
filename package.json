@@ -40,6 +40,7 @@
   "main": "./src/lib.js",
   "types": "./src/lib.d.ts",
   "files": [
+    "src/cache.js",
     "src/cli.js",
     "src/lib.js",
     "src/lib.d.ts",

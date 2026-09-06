@@ -1,3 +1,8 @@
+# Unreleased
+
+ - Add an opt-in cache of rendered images keyed by a stable hash of the render options (in-memory LRU with TTL, optionally persisted to a directory). Library: `configureCache({ max, ttl, dir })`, `getCache()` and `cacheKey(options)` named exports. Server: `osmsm serve --cache-max/--cache-ttl/--cache-dir` (or `CACHE_MAX`/`CACHE_TTL`/`CACHE_DIR` env vars); when enabled, image responses carry `Cache-Control`, `ETag` (with `304` support) and `X-Cache` headers
+ - Normalize `width`, `height`, `maxZoom` and `quality` to numbers and `type` to `'png'` by default
+
 # 5.0.0
 
 Modernize package with multiple improvements
