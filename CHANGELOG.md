@@ -1,3 +1,9 @@
+# Unreleased
+
+ - Add configuration from env vars and a config file to the CLI and `osmsm serve` (Refs #12). Every option can be set with `OSMSM_<OPTION>` env vars (e.g. `OSMSM_TILESERVER_URL`) or in a JSON config file looked up at `--config <path>` / `$OSMSM_CONFIG`, `./osmsm.config.json` and `~/.config/osmsm/config.json`. Precedence: CLI flags > env vars > config file > built-in defaults. The library API is unaffected
+ - `osmsm serve`: add `--headerCheck` and `--headerCheckFailMessage` options (the `PORT`, `HEADER_CHECK` and `HEADER_CHECK_FAIL_MESSAGE` env vars keep working, with the new `OSMSM_`-prefixed ones taking precedence); render options from env vars / config file are used as defaults for every request
+ - Export `createApp(settings)` from `src/server.js` to build the express app with explicit settings (the default export, a server built from env vars, is unchanged)
+
 # 5.0.0
 
 Modernize package with multiple improvements

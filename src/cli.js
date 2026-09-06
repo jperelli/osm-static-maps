@@ -1,8 +1,10 @@
 #!/usr/bin/env node
 
 import { networkInterfaces } from "os";
+import { createServer } from "http";
 import { program } from "commander";
 import osmsm, { warmupBrowser } from "./lib.js";
+import { loadConfigFile, resolveOptions, unknownConfigKeys } from "./config.js";
 
 function getLocalIp() {
   const interfaces = networkInterfaces();
@@ -17,11 +19,54 @@ function getLocalIp() {
 }
 import packagejson from "../package.json" with { type: 'json' };
 
+// Long option names of a command (the keys of `cmd.opts()`), excluding the
+// options that cannot come from env vars or the config file.
+function optionKeys(cmd) {
+  return cmd.options
+    .map((o) => o.attributeName())
+    .filter((k) => !["version", "config"].includes(k));
+}
+
+// Splits `cmd.opts()` into what was explicitly passed on the command line
+// and the built-in defaults, so env vars and the config file can sit between.
+function splitCliOptions(cmd) {
+  const cli = {};
+  const defaults = {};
+  for (const key of optionKeys(cmd)) {
+    const value = cmd.getOptionValue(key);
+    if (cmd.getOptionValueSource(key) === "cli") cli[key] = value;
+    else defaults[key] = value;
+  }
+  return { cli, defaults };
+}
+
+function loadConfig(knownKeys) {
+  const config = loadConfigFile({ configPath: program.opts().config });
+  const unknown = unknownConfigKeys(config.values, knownKeys);
+  if (unknown.length) {
+    process.stderr.write(
+      `Warning: ignoring unknown option(s) in ${config.path}: ${unknown.join(", ")}\n`
+    );
+  }
+  return config;
+}
+
+function fail(message, code = 2) {
+  process.stderr.write(message + "\n");
+  process.exit(code);
+}
+
+const SERVE_OPTION_KEYS = ["port", "headerCheck", "headerCheckFailMessage"];
+
 program
   .version(packagejson.version)
   .name("osmsm")
   .usage(
     "[options]\nGenerate an image of a geojson with a background map layer"
+  )
+  .option(
+    "-C, --config <path>",
+    "Config file (JSON) with default option values (default: ./osmsm.config.json or ~/.config/osmsm/config.json; env: OSMSM_CONFIG)"
   )
   .option("-g, --geojson <string>", "Geojson object to be rendered")
   .option("-f, --geojsonfile <string>", "Geojson file name to be rendered (\"-\" reads STDIN)")
@@ -117,17 +162,22 @@ program
   )
   .action(function(...args) {
     // commander passes the Command instance as the last action argument.
-    const opts = args[args.length - 1].opts();
+    const cmd = args[args.length - 1];
+    let opts;
+    try {
+      const keys = optionKeys(cmd);
+      const config = loadConfig([...keys, ...SERVE_OPTION_KEYS]);
+      opts = resolveOptions({ keys, ...splitCliOptions(cmd), config: config.values }).values;
+    } catch (e) {
+      fail(e.message);
+    }
 
     // DEBUG
     // process.stderr.write(JSON.stringify(opts, undefined, 2));
     // process.stderr.write("\n");
 
     if (!["png", "jpeg"].includes(opts.type)) {
-      process.stderr.write(
-        '-F|--type can only have the values "png" or "jpeg"\n'
-      );
-      process.exit(2);
+      fail('-F|--type can only have the values "png" or "jpeg"');
     }
 
     osmsm(opts)
@@ -144,15 +194,49 @@ program
 
 program
   .command("serve")
-  .option("-p, --port <number>", "Port number to listen")
-  .action(async function(cmd) {
-    const server = (await import("./server.js")).default;
-    const port = cmd.port || process.env.PORT || 3000;
+  .description(
+    "Start the http server. Render options given as env vars (OSMSM_*) or in the config file are used as defaults for every request"
+  )
+  .option("-p, --port <number>", "Port number to listen (env: OSMSM_PORT or PORT)", Number, 3000)
+  .option(
+    "--headerCheck <name:value>",
+    "Reject with 403 the requests missing this header (env: OSMSM_HEADER_CHECK or HEADER_CHECK)"
+  )
+  .option(
+    "--headerCheckFailMessage <string>",
+    "Body of the 403 response when --headerCheck fails (env: OSMSM_HEADER_CHECK_FAIL_MESSAGE or HEADER_CHECK_FAIL_MESSAGE)"
+  )
+  .action(async function(...args) {
+    const cmd = args[args.length - 1];
+    const renderKeys = optionKeys(program);
+    let opts;
+    let renderDefaults;
+    try {
+      const config = loadConfig([...renderKeys, ...SERVE_OPTION_KEYS]);
+      opts = resolveOptions({
+        keys: SERVE_OPTION_KEYS,
+        ...splitCliOptions(cmd),
+        config: config.values,
+      }).values;
+      // Only env/config values: the lib applies its own built-in defaults.
+      renderDefaults = resolveOptions({ keys: renderKeys, config: config.values }).values;
+    } catch (e) {
+      fail(e.message);
+    }
+
+    const { createApp } = await import("./server.js");
+    const server = createServer(
+      createApp({
+        headerCheck: opts.headerCheck,
+        headerCheckFailMessage: opts.headerCheckFailMessage,
+        defaults: renderDefaults,
+      })
+    );
     // Launch chromium up front so the "Launching chromium" log appears at
     // startup (before request logs) and the first request isn't slowed by it.
     await warmupBrowser();
-    server.listen(port, function() {
-      console.log("osmsm server listening on http://" + getLocalIp() + ":" + port);
+    server.listen(opts.port, function() {
+      console.log("osmsm server listening on http://" + getLocalIp() + ":" + opts.port);
     });
   });
 
