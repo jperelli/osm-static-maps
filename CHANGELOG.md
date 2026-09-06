@@ -1,3 +1,8 @@
+# Unreleased
+
+ - Add opt-in hotlinking / abuse controls to the sample server, configured via environment variables (default behaviour unchanged): `ALLOWED_REFERERS` (comma separated `Referer` hostname allowlist, supporting `*.example.com` wildcards and `none` for requests without a `Referer`) and a simple in-memory per-IP rate limit (`RATE_LIMIT_MAX` / `RATE_LIMIT_WINDOW`, answering `429` with `Retry-After`), each with a configurable failure message. `/health` is exempt from both. Document these together with the pre-existing `HEADER_CHECK` gate in the README
+ - `src/server.js` now also exports `createApp(env)` so the server can be built with an explicit configuration (used by the new server tests)
+
 # 5.0.0
 
 Modernize package with multiple improvements
