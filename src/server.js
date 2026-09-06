@@ -1,6 +1,6 @@
 import express, { json } from "express";
 import { createServer } from "http";
-import osmsm from "./lib.js";
+import osmsm, { getCache, cacheKey } from "./lib.js";
 import { fileURLToPath } from 'url';
 import path from 'path';
 
@@ -40,7 +40,7 @@ app.use((req, res, next) => {
 
 app.get("/health", (req, res) => res.sendStatus(200));
 
-const handler = (res, params) => {
+const handler = (req, res, params) => {
   const filename = params.f || params.geojsonfile
   if (
     filename &&
@@ -51,9 +51,24 @@ const handler = (res, params) => {
       `'geojsonfile' parameter on server only allowed if filename starts with http(s)`
     );
   }
-  osmsm(params)
+  const isHtml = params.renderToHtml || params.D;
+  const cache = isHtml ? null : getCache();
+  const key = cache ? cacheKey(params) : null;
+  if (key) {
+    res.set("Cache-Control", `public, max-age=${cache.ttl}`);
+    res.set("ETag", `"${key}"`);
+    if (req.fresh) {
+      res.status(304).end();
+      return;
+    }
+  }
+  (key ? cache.get(key) : Promise.resolve(undefined))
+    .then((cached) => {
+      if (key) res.set("X-Cache", cached ? "HIT" : "MISS");
+      return cached || osmsm(params);
+    })
     .then((data) => {
-      if (params.renderToHtml || params.D) {
+      if (isHtml) {
         res.type("html");
       } else {
         res.type((params.type || params.F) === "jpeg" ? "jpeg" : "png");
@@ -63,15 +78,15 @@ const handler = (res, params) => {
     .catch((err) => res.status(500).end(err.toString()));
 };
 
-app.get("/", (req, res) => handler(res, req.query));
-app.post("/", (req, res) => handler(res, req.body));
+app.get("/", (req, res) => handler(req, res, req.query));
+app.post("/", (req, res) => handler(req, res, req.body));
 
 app.get("/dynamic", (req, res) => {
-  handler(res, { ...req.query, renderToHtml: true })
+  handler(req, res, { ...req.query, renderToHtml: true })
 })
 
 app.post("/dynamic", (req, res) => {
-  handler(res, { ...req.body, renderToHtml: true })
+  handler(req, res, { ...req.body, renderToHtml: true })
 })
 
 export default createServer(app);

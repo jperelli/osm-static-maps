@@ -4,6 +4,7 @@ import https from "https";
 import handlebars from 'handlebars';
 import { spawn } from "child_process";
 import { fileURLToPath } from 'url';
+import { RenderCache, cacheKey as rawCacheKey } from './cache.js';
 
 let chrome = { args: [] };
 let puppeteer;
@@ -277,35 +278,81 @@ async function configCache(page) {
   });
 }
 
+// Optional cache of rendered images, shared by every render in this process.
+let imageCache = null;
+
+// Enable (or disable, with a falsy argument) caching of rendered images keyed
+// by their render options. `max` bounds the in-memory entries, `ttl` is in
+// seconds and `dir` optionally persists the images on disk.
+export function configureCache(opts) {
+  const { max = 100, ttl = 3600, dir } = opts || {};
+  imageCache = opts && (Number(max) > 0 || dir) ? new RenderCache({ max, ttl, dir }) : null;
+  return imageCache;
+}
+
+export function getCache() {
+  return imageCache;
+}
+
+// Cache key an image rendered with these options would be stored under.
+export function cacheKey(options) {
+  return rawCacheKey(normalizeOptions({ ...options }));
+}
+
+function normalizeOptions(options) {
+  // TODO: validate options to avoid template injection
+  options.geojson = (options.geojson && (typeof options.geojson === 'string' ? options.geojson : JSON.stringify(options.geojson))) || '';
+  options.geojsonfile = options.geojsonfile || '';
+  options.height = Number(options.height) || 600;
+  options.width = Number(options.width) || 800;
+  options.center = options.center || '';
+  options.zoom = options.zoom || '';
+  options.maxZoom = Number(options.maxZoom) || 17;
+  options.tileserverUrl = options.tileserverUrl || 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+  options.vectorserverUrl = options.vectorserverUrl || '';
+  options.vectorserverToken = options.vectorserverToken || '';
+  options.vectorserverAttribution =
+    options.vectorserverAttribution === undefined
+      ? true
+      : options.vectorserverAttribution !== false && options.vectorserverAttribution !== 'false';
+  options.attribution = options.attribution || (options.vectorserverUrl ? 'osm-static-maps' : 'osm-static-maps / © OpenStreetMap contributors');
+  options.imagemin = options.imagemin || false;
+  options.oxipng = options.oxipng || false;
+  options.arrows = options.arrows || false;
+  options.scale = (options.scale && (typeof options.scale === 'string' ? options.scale : JSON.stringify(options.scale))) || false;
+  options.markerIconOptions = (options.markerIconOptions && (typeof options.markerIconOptions === 'string' ? options.markerIconOptions : JSON.stringify(options.markerIconOptions))) || false;
+  options.style = (options.style && (typeof options.style === 'string' ? options.style : JSON.stringify(options.style))) || false;
+  options.timeout = options.timeout || 20000;
+  options.haltOnConsoleError = !!options.haltOnConsoleError;
+  options.type = options.type || 'png';
+  options.quality = Number(options.quality || 100);
+  return options;
+}
+
 export default function(options) {
   return new Promise(function(resolve, reject) {
-    // TODO: validate options to avoid template injection
-    options = options || {};
-    options.geojson = (options.geojson && (typeof options.geojson === 'string' ? options.geojson : JSON.stringify(options.geojson))) || '';
-    options.geojsonfile = options.geojsonfile || '';
-    options.height = options.height || 600;
-    options.width = options.width || 800;
-    options.center = options.center || '';
-    options.zoom = options.zoom || '';
-    options.maxZoom = options.maxZoom || 17;
-    options.tileserverUrl = options.tileserverUrl || 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
-    options.vectorserverUrl = options.vectorserverUrl || '';
-    options.vectorserverToken = options.vectorserverToken || '';
-    options.vectorserverAttribution =
-      options.vectorserverAttribution === undefined
-        ? true
-        : options.vectorserverAttribution !== false && options.vectorserverAttribution !== 'false';
-    options.attribution = options.attribution || (options.vectorserverUrl ? 'osm-static-maps' : 'osm-static-maps / © OpenStreetMap contributors');
-    options.imagemin = options.imagemin || false;
-    options.oxipng = options.oxipng || false;
-    options.arrows = options.arrows || false;
-    options.scale = (options.scale && (typeof options.scale === 'string' ? options.scale : JSON.stringify(options.scale))) || false;
-    options.markerIconOptions = (options.markerIconOptions && (typeof options.markerIconOptions === 'string' ? options.markerIconOptions : JSON.stringify(options.markerIconOptions))) || false;
-    options.style = (options.style && (typeof options.style === 'string' ? options.style : JSON.stringify(options.style))) || false;
-    options.timeout = options.timeout || 20000;
-    options.haltOnConsoleError = !!options.haltOnConsoleError;
+    options = normalizeOptions(options || {});
+
+    const renderCache = imageCache;
+    // stdin can't be re-read, so a key built from its filename would be wrong
+    const key = renderCache && !options.renderToHtml && options.geojsonfile !== '-'
+      ? rawCacheKey(options)
+      : null;
+    const store = (img) => {
+      if (key) {
+        renderCache.set(key, img).catch((e) => console.error("Error writing render cache: " + e));
+      }
+      return img;
+    };
 
     (async () => {
+
+      if (key) {
+        const cached = await renderCache.get(key);
+        if (cached !== undefined) {
+          return resolve(cached);
+        }
+      }
 
       if (options.geojsonfile) {
         if (options.geojson) {
@@ -377,12 +424,12 @@ export default function(options) {
             plugins.push(imageminOptipng());
           }
           (async () => {
-            resolve(await imagemin.buffer(
+            resolve(store(await imagemin.buffer(
               Buffer.from(imageBinary),
               {
                 plugins,
               }
-            ))
+            )))
           })();
         } else {
           if (options.oxipng) {
@@ -392,7 +439,7 @@ export default function(options) {
             child.stdin.end();
             let newimg = [];
             child.stdout.on('data', data => newimg.push(data));
-            child.on('close', () => resolve(Buffer.concat(newimg)));
+            child.on('close', () => resolve(store(Buffer.concat(newimg))));
             child.on('error', e => {
               if (e && e.code === 'ENOENT') {
                 reject(new Error(
@@ -406,7 +453,7 @@ export default function(options) {
               }
             });
           } else {
-            resolve(Buffer.from(imageBinary));
+            resolve(store(Buffer.from(imageBinary)));
           }
         }
 

@@ -52,6 +52,15 @@ import osmsm from 'osm-static-maps'
 const imageBinaryBuffer = await osmsm({geojson})
 ```
 
+Rendering is slow (it drives a headless browser), so if the same map is requested repeatedly you can enable a cache of rendered images, keyed by the render options (see [Caching](#caching)):
+
+```javascript
+import osmsm, { configureCache } from 'osm-static-maps'
+configureCache({ max: 100, ttl: 3600, dir: '/var/cache/osmsm' })
+const first = await osmsm({geojson})   // rendered
+const second = await osmsm({geojson})  // served from the cache
+```
+
 ### 3. Standalone sample server
 
 ```bash
@@ -70,6 +79,14 @@ Or you can use docker-compose
 git clone git@github.com:jperelli/osm-static-maps.git
 cd osm-static-maps
 docker-compose up
+```
+
+The server can cache the rendered images so that using it as `<img src="...">` only renders each distinct map once (see [Caching](#caching)):
+
+```bash
+osmsm serve --cache-max 100 --cache-ttl 3600 --cache-dir /var/cache/osmsm
+# or via environment variables
+CACHE_MAX=100 CACHE_TTL=3600 CACHE_DIR=/var/cache/osmsm osmsm serve
 ```
 
 ### 4. Cloud service
@@ -111,6 +128,22 @@ All parameters have a short and long version. The short version can be used only
 * Note on markerIconOptions: it's also accepted a markerIconOptions attribute in the geojson feature, for example `{"type":"Point","coordinates":[-105.01621,39.57422],"markerIconOptions":{"iconUrl":"https://leafletjs.com/examples/custom-icons/leaf-red.png"}}`
 
 * Note on style: it's also accepted a pathOptions attribute in the geojson feature, for example `{"type":"Polygon","coordinates":[[[-56.698,-36.413],[-56.716,-36.348],[-56.739,-36.311]]],"pathOptions":{"color":"#FF5555"}}` (also remember that the `#` char needs to be passed as `%23` if you are using GET params)
+
+### Caching
+
+Caching of rendered images is opt-in and disabled by default. Images are keyed by a stable hash of the render-affecting options (so `timeout`, `haltOnConsoleError` and unknown params don't matter, and `{width: 800}` and no `width` share an entry). `renderToHtml` output and geojson read from stdin are never cached.
+
+| Option | `osmsm serve` flag | Env var | Description | Default |
+| ---- | ---- | ---- | ---- | ---- |
+| max | `--cache-max <number>` | `CACHE_MAX` | max rendered images kept in memory (LRU). `0` keeps none in memory | `100` (lib) / `0` = off (server) |
+| ttl | `--cache-ttl <seconds>` | `CACHE_TTL` | seconds until a cached image expires | `3600` |
+| dir | `--cache-dir <path>` | `CACHE_DIR` | directory where images are also persisted (survives restarts, shareable between processes). Expired files are removed lazily when they are next requested | `undefined` (memory only) |
+
+The cache is active when `max > 0` or `dir` is set. The library exposes `configureCache(options)` (pass `null`/`false` to disable), `getCache()` (with `get`/`has`/`set`/`delete`/`clear` methods and a `size` property) and `cacheKey(options)`.
+
+When the cache is enabled the server also sends `Cache-Control: public, max-age=<ttl>`, an `ETag` derived from the cache key (conditional `If-None-Match` requests get a `304` without rendering) and an `X-Cache: HIT|MISS` header on image responses.
+
+Note: when `geojsonfile` is a URL the key is built from the URL, not its contents, so changes to the remote file are only picked up after the entry expires (or after `getCache().clear()`).
 
 ## Development
 
