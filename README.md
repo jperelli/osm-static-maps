@@ -72,6 +72,31 @@ cd osm-static-maps
 docker-compose up
 ```
 
+#### Server configuration (access control)
+
+Rendering a map is expensive, so a publicly reachable server is an easy target for abuse (for example other sites hotlinking `<img src="https://your-server/?geojson=...">`). The sample server ships with a few **opt-in** gates, all configured with environment variables. By default none of them is active and the server answers every request.
+
+| Variable | Description | Default |
+| ---- | ---- | ---- |
+| `PORT` | port to listen on (also `osmsm serve -p <port>`) | `3000` |
+| `HEADER_CHECK` | `name:value` of a header every request must carry, e.g. `x-api-key:s3cret`. Useful for server-to-server usage; answers `403` otherwise | `undefined` (disabled) |
+| `HEADER_CHECK_FAIL_MESSAGE` | body of the `403` response when `HEADER_CHECK` fails | `Forbidden, set correct header to access` |
+| `ALLOWED_REFERERS` | comma separated list of hostnames allowed to embed maps, checked against the `Referer` header. `*.example.com` matches `example.com` and all its subdomains; the special value `none` allows requests carrying no `Referer` at all (direct API calls, `curl`...). Anything else answers `403` | `undefined` (disabled) |
+| `ALLOWED_REFERERS_FAIL_MESSAGE` | body of the `403` response when the `Referer` is not allowed | `Forbidden, hotlinking from this site is not allowed` |
+| `RATE_LIMIT_MAX` | max number of map requests per client IP in each window; exceeding it answers `429` with a `Retry-After` header. The client IP is taken from the first `X-Forwarded-For` entry when present, so only enable it behind a trusted reverse proxy or on a directly exposed server | `undefined` (disabled) |
+| `RATE_LIMIT_WINDOW` | length of the rate limit window, in seconds | `60` |
+| `RATE_LIMIT_FAIL_MESSAGE` | body of the `429` response | `Too many requests, slow down` |
+
+The `/health` endpoint is never rate limited nor referer-checked, so container health checks keep working; it is still subject to `HEADER_CHECK`.
+
+```bash
+# only let mysite.com (and its subdomains) embed maps, plus direct calls without a Referer,
+# and cap each client at 30 renders per minute
+ALLOWED_REFERERS='none,*.mysite.com' RATE_LIMIT_MAX=30 RATE_LIMIT_WINDOW=60 osmsm serve
+```
+
+The rate limiter is a simple in-memory, per-process counter meant as a safety net. For a production deployment (multiple processes, distributed limits, caching) put a reverse proxy such as nginx in front of the server.
+
 ### 4. Cloud service
 
 You can use the heroku-hosted alternative directly [here](http://osm-static-maps.herokuapp.com/ "Awesome!")
