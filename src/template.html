@@ -87,8 +87,21 @@
                         iconAnchor: [15, 41]
                     });
                 {{/if}}
+                function featureAttribute(feature, name) {
+                    if (feature[name] !== undefined) return feature[name];
+                    if (feature.geometry && feature.geometry[name] !== undefined) return feature.geometry[name];
+                    if (feature.properties && feature.properties[name] !== undefined) return feature.properties[name];
+                }
                 var geojsonlayer = L.geoJson({{{ geojson }}}, {
                     pointToLayer: function (feature, latlng) {
+                        var radius = featureAttribute(feature, 'radius');
+                        if (radius !== undefined) {
+                            return L.circle(latlng, {radius: Number(radius)});
+                        }
+                        var radiusPixels = featureAttribute(feature, 'radiusPixels');
+                        if (radiusPixels !== undefined) {
+                            return L.circleMarker(latlng, {radius: Number(radiusPixels)});
+                        }
                         if (feature.markerIconOptions) {
                             return L.marker(latlng, {icon: L.icon(feature.markerIconOptions)})
                         }
@@ -113,8 +126,9 @@
                         {{#if style}}
                             Object.assign(style, {{{ style }}})
                         {{/if}}
-                        if (feature.geometry.pathOptions) {
-                            Object.assign(style, feature.geometry.pathOptions)
+                        var pathOptions = featureAttribute(feature, 'pathOptions');
+                        if (pathOptions) {
+                            Object.assign(style, pathOptions)
                         }
                         return style
                     },

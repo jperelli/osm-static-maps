@@ -1,3 +1,8 @@
+# Unreleased
+
+ - Add support for drawing circles: a `Point` feature with a `radius` attribute (meters) is rendered with `L.circle`, and one with a `radiusPixels` attribute (pixels) with `L.circleMarker`; both honour the `style` option and the per-feature `pathOptions`
+ - Per-feature `pathOptions`, `markerIconOptions`, `radius` and `radiusPixels` attributes are now also read from the feature's `properties` object and from the `Feature` itself, in addition to the geometry object
+
 # 5.0.0
 
 Modernize package with multiple improvements

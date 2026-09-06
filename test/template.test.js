@@ -92,6 +92,30 @@ describe('renderToHtml', () => {
     expect(html).toContain('https://tiles.example.com/{z}/{x}/{y}.png');
   });
 
+  it('renders points as circles when a radius / radiusPixels attribute is set', async () => {
+    const html = await osmsm({ geojson: POINT, renderToHtml: true });
+    expect(html).toContain("featureAttribute(feature, 'radius')");
+    expect(html).toContain('L.circle(latlng, {radius: Number(radius)})');
+    expect(html).toContain("featureAttribute(feature, 'radiusPixels')");
+    expect(html).toContain('L.circleMarker(latlng, {radius: Number(radiusPixels)})');
+    // markers remain the fallback for plain points
+    expect(html).toContain('L.marker(latlng, {icon: myIcon})');
+  });
+
+  it('embeds per-feature radius and pathOptions into the page', async () => {
+    const html = await osmsm({
+      geojson: {
+        type: 'Feature',
+        properties: { radius: 1500, pathOptions: { color: '#FF5555' } },
+        geometry: { type: 'Point', coordinates: [-105.01621, 39.57422] },
+      },
+      renderToHtml: true,
+    });
+    expect(html).toContain('"radius":1500');
+    expect(html).toContain('"pathOptions":{"color":"#FF5555"}');
+    expect(html).toContain("featureAttribute(feature, 'pathOptions')");
+  });
+
   it("rejects when both 'geojson' and 'geojsonfile' are provided", async () => {
     await expect(
       osmsm({ geojson: POINT, geojsonfile: 'http://example.com/x.json', renderToHtml: true })
