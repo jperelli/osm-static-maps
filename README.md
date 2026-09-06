@@ -112,6 +112,67 @@ All parameters have a short and long version. The short version can be used only
 
 * Note on style: it's also accepted a pathOptions attribute in the geojson feature, for example `{"type":"Polygon","coordinates":[[[-56.698,-36.413],[-56.716,-36.348],[-56.739,-36.311]]],"pathOptions":{"color":"#FF5555"}}` (also remember that the `#` char needs to be passed as `%23` if you are using GET params)
 
+## Configuration (CLI and server)
+
+The CLI and `osmsm serve` can take default values for any option from environment variables and from a JSON config file. Values are resolved with the following precedence (highest first):
+
+1. command line flags (`--height 300`)
+2. environment variables (`OSMSM_HEIGHT=300`)
+3. config file (`{"height": 300}`)
+4. built-in defaults (the "Default Value" column above)
+
+This only applies to the CLI and the server. The nodejs library ignores env vars and config files: it uses exactly the options you pass to it.
+
+### Environment variables
+
+Every option can be set with `OSMSM_` followed by the option name in upper snake case: `OSMSM_HEIGHT`, `OSMSM_TILESERVER_URL`, `OSMSM_MAX_ZOOM`, `OSMSM_RENDER_TO_HTML`, `OSMSM_VECTORSERVER_ATTRIBUTION`, `OSMSM_HALT_ON_CONSOLE_ERROR`, etc. Numbers are parsed, booleans accept `true`/`false` (also `1`/`0`, `yes`/`no`, `on`/`off`), and JSON options (`scale`, `style`, `markerIconOptions`, `geojson`) take the JSON string as is.
+
+```bash
+OSMSM_TILESERVER_URL='https://tiles.example.com/{z}/{x}/{y}.png' OSMSM_ATTRIBUTION='© my tiles' osmsm -f map.geojson > map.png
+```
+
+### Config file
+
+A JSON object whose keys are the long option names (the ones used in the table above):
+
+```json
+{
+  "tileserverUrl": "https://tiles.example.com/{z}/{x}/{y}.png",
+  "attribution": "© my tiles",
+  "width": 1024,
+  "height": 768,
+  "port": 8080
+}
+```
+
+The file is looked up in this order, and the first one found is used:
+
+1. the path given with `--config <path>` (or `-C`), or with the `OSMSM_CONFIG` environment variable (an error is raised if it does not exist)
+2. `./osmsm.config.json` in the current working directory
+3. `$XDG_CONFIG_HOME/osmsm/config.json` (i.e. `~/.config/osmsm/config.json`)
+
+Unknown keys in the config file are ignored with a warning on stderr.
+
+### Server options
+
+`osmsm serve` has its own options, also configurable with the same precedence rules:
+
+| Flag | Env var | Config key | Description | Default |
+| ---- | ---- | ---- | ---- | ---- |
+| `-p, --port <number>` | `OSMSM_PORT` (or `PORT`) | `port` | port to listen on | `3000` |
+| `--headerCheck <name:value>` | `OSMSM_HEADER_CHECK` (or `HEADER_CHECK`) | `headerCheck` | reject with `403` every request that does not carry this header, e.g. `x-api-key:secret` | `undefined` (no check) |
+| `--headerCheckFailMessage <string>` | `OSMSM_HEADER_CHECK_FAIL_MESSAGE` (or `HEADER_CHECK_FAIL_MESSAGE`) | `headerCheckFailMessage` | body of the `403` response | `'Forbidden, set correct header to access'` |
+
+The unprefixed `PORT`, `HEADER_CHECK` and `HEADER_CHECK_FAIL_MESSAGE` variables are kept for backwards compatibility; the `OSMSM_` ones take precedence over them.
+
+Render options (`tileserverUrl`, `attribution`, `width`, ...) set through env vars or the config file when running `osmsm serve` are used as defaults for every request; the parameters of each request still override them.
+
+```bash
+# serve on port 8080, requiring a header, with a custom tileserver as default
+osmsm serve --config /etc/osmsm/config.json
+OSMSM_PORT=8080 OSMSM_HEADER_CHECK=x-api-key:secret OSMSM_TILESERVER_URL='https://tiles.example.com/{z}/{x}/{y}.png' osmsm serve
+```
+
 ## Development
 
 ```bash

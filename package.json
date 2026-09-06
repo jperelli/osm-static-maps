@@ -41,6 +41,7 @@
   "types": "./src/lib.d.ts",
   "files": [
     "src/cli.js",
+    "src/config.js",
     "src/lib.js",
     "src/lib.d.ts",
     "src/server.js",
