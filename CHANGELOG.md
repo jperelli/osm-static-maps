@@ -1,3 +1,7 @@
+# 5.1.1
+
+ - Remove the puppeteer request-interception tile cache (`setRequestInterception` + `request.continue()`). On a loaded production host it left 1-2 MapLibre tile fetches paused forever, so every `vectorserverUrl` render ended in `TimeoutError: Waiting failed` while raster renders worked; without interception the same render finishes in a few seconds. The cache could not have been doing much anyway: pages are loaded with `setContent` (opaque origin), so Chrome's own HTTP cache does not apply either
+
 # 5.1.0
 
  - Add `webp` as an output format (`type: 'webp'` / `-F webp` / `?type=webp`), served with `Content-Type: image/webp`

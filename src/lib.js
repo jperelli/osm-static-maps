@@ -236,47 +236,6 @@ function httpGet(url) {
 process.on("warning", (e) => console.warn(e.stack));
 
 
-// add network cache to cache tiles
-const cache = {};
-async function configCache(page) {
-  await page.setRequestInterception(true);
-
-  page.on('request', async (request) => {
-      const url = request.url();
-      if (cache[url] && cache[url].expires > Date.now()) {
-          await request.respond(cache[url]);
-          return;
-      }
-      request.continue();
-  });
-  
-  page.on('response', async (response) => {
-      const url = response.url();
-      const headers = response.headers();
-      const cacheControl = headers['cache-control'] || '';
-      const maxAgeMatch = cacheControl.match(/max-age=(\d+)/);
-      const maxAge = maxAgeMatch && maxAgeMatch.length > 1 ? parseInt(maxAgeMatch[1], 10) : 0;
-      if (maxAge) {
-          if (cache[url] && cache[url].expires > Date.now()) return;
-  
-          let buffer;
-          try {
-              buffer = await response.buffer();
-          } catch (error) {
-              // some responses do not contain buffer and do not need to be catched
-              return;
-          }
-  
-          cache[url] = {
-              status: response.status(),
-              headers: response.headers(),
-              body: buffer,
-              expires: Date.now() + (maxAge * 1000),
-          };
-      }
-  });
-}
-
 const IMAGE_TYPES = ['png', 'jpeg', 'webp'];
 
 function normalizeImageType(type) {
@@ -353,7 +312,6 @@ export default function(options) {
       }
 
       const page = await browser.getPage();
-      await configCache(page);
       try {
         page.on('error', function (err) { reject(err instanceof Error ? err : new Error(String(err))) })
         page.on('pageerror', function (err) { reject(err instanceof Error ? err : new Error(String(err))) })
