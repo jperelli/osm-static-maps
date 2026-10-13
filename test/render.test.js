@@ -109,6 +109,26 @@ describe('image rendering', () => {
     await expect(osmsm({ geojson: POINT, tileserverUrl, type: 'jpeg', quality: 'high' })).rejects.toThrow(/'quality'/);
   });
 
+  it('reuses cached tiles across renders when the tile server allows it', async () => {
+    let hits = 0;
+    const cachingServer = http.createServer((req, res) => {
+      hits++;
+      res.writeHead(200, { 'Content-Type': 'image/png', 'Cache-Control': 'public, max-age=3600' });
+      res.end(TILE_PNG);
+    });
+    await new Promise((resolve) => cachingServer.listen(0, resolve));
+    try {
+      const url = `http://localhost:${cachingServer.address().port}/cached/{z}/{x}/{y}.png`;
+      await osmsm({ geojson: POINT, tileserverUrl: url });
+      const firstRender = hits;
+      expect(firstRender).toBeGreaterThan(0);
+      await osmsm({ geojson: POINT, tileserverUrl: url });
+      expect(hits).toBe(firstRender);
+    } finally {
+      await new Promise((resolve) => cachingServer.close(resolve));
+    }
+  });
+
   it('renders without any geojson (empty map)', async () => {
     const img = await osmsm({ tileserverUrl });
     expect(Buffer.isBuffer(img)).toBe(true);

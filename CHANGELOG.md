@@ -1,3 +1,8 @@
+# 5.2.0
+
+ - Tiles, glyphs and sprites are cached again between renders, this time by chromium's own HTTP cache: the rendered page is now served to the browser from a loopback HTTP server (`http://127.0.0.1:<random port>/<uuid>.html`) instead of `page.setContent()`. `setContent()` gives the page an opaque origin, for which chromium never reuses its HTTP cache, so every render re-downloaded everything. The cache honours the tile server's `Cache-Control`/`max-age`, is shared by all pages of the browser singleton (so it works for the whole life of `osmsm serve`), and involves no request interception, so it cannot stall a request like the cache removed in 5.1.1 did. Measured on OpenFreeMap vector tiles: a repeated or neighbouring render drops from ~2.4 s to ~0.5 s and makes 0 tile requests
+ - `closeBrowser()` also shuts the loopback page server down
+
 # 5.1.1
 
  - Remove the puppeteer request-interception tile cache (`setRequestInterception` + `request.continue()`). On a loaded production host it left 1-2 MapLibre tile fetches paused forever, so every `vectorserverUrl` render ended in `TimeoutError: Waiting failed` while raster renders worked; without interception the same render finishes in a few seconds. The cache could not have been doing much anyway: pages are loaded with `setContent` (opaque origin), so Chrome's own HTTP cache does not apply either

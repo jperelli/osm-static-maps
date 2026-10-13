@@ -3,6 +3,7 @@ import http from 'http';
 import https from "https";
 import handlebars from 'handlebars';
 import { spawn } from "child_process";
+import { randomUUID } from 'crypto';
 import { fileURLToPath } from 'url';
 
 let chrome = { args: [] };
@@ -203,8 +204,69 @@ class Browser {
 }
 const browser = new Browser();
 
+// Rendered pages are served to chromium from this loopback HTTP server instead
+// of page.setContent(). setContent() gives the document an opaque origin, and
+// chromium never reuses its HTTP cache for opaque origins, so every render
+// re-downloaded every tile, glyph and sprite. Loaded from http://127.0.0.1 the
+// browser's own cache applies, honouring the tile server's Cache-Control, for
+// as long as the browser singleton lives. (Request interception was used for
+// this before 5.1.1 and randomly left MapLibre worker fetches paused forever.)
+class PageServer {
+  constructor() {
+    this.server = null;
+    this.listening = null;
+    this.pages = new Map();
+  }
+  start() {
+    if (!this.listening) {
+      this.listening = new Promise((resolve, reject) => {
+        this.server = http.createServer((req, res) => {
+          const html = this.pages.get(req.url);
+          if (html === undefined) {
+            res.writeHead(404);
+            res.end();
+            return;
+          }
+          res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' });
+          res.end(html);
+        });
+        // Don't keep the CLI process alive once the render is done.
+        this.server.unref();
+        this.server.on('connection', (socket) => socket.unref());
+        this.server.on('error', reject);
+        this.server.listen(0, '127.0.0.1', () => resolve(this.server.address().port));
+      }).catch((e) => {
+        this.listening = null;
+        this.server = null;
+        throw e;
+      });
+    }
+    return this.listening;
+  }
+  // Publish html under a one-off URL; call the returned release() when the
+  // page has loaded it.
+  async add(html) {
+    const port = await this.start();
+    const path = `/${randomUUID()}.html`;
+    this.pages.set(path, html);
+    return {
+      url: `http://127.0.0.1:${port}${path}`,
+      release: () => this.pages.delete(path),
+    };
+  }
+  async close() {
+    const server = this.server;
+    this.server = null;
+    this.listening = null;
+    this.pages.clear();
+    if (server) await new Promise((resolve) => server.close(resolve));
+  }
+}
+const pageServer = new PageServer();
+
 export async function closeBrowser() {
   await browser.close();
+  await pageServer.close();
 }
 
 // Eagerly launch chromium (e.g. at server startup) so the launch happens and
@@ -327,7 +389,12 @@ export default function(options) {
           height: Number(options.height)
         });
 
-        await page.setContent(html);
+        const served = await pageServer.add(html);
+        try {
+          await page.goto(served.url);
+        } finally {
+          served.release();
+        }
         await page.waitForFunction(() => window.mapRendered === true, { timeout: Number(options.timeout) });
 
         let imageBinary = await page.screenshot({
