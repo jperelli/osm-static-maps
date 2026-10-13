@@ -23,9 +23,7 @@
         </style>
         <script>
         //leafletjs//
-        {{#if arrows}}
         //leafletpolylinedecorator//
-        {{/if}}
         </script>
 
         {{#if vectorserverUrl}}
@@ -42,104 +40,31 @@
     <body>
         <div id="map"></div>
         <script>
-
-            var initTime = performance.now();
-
-            function onLoadFn() {
-                window.mapRendered = true;
-                console.log('map rendered time: ' + (performance.now() - initTime) + 'ms');
-            }
-
-            {{#if arrows}}
-                var decorator = L.Symbol.arrowHead({
-                    pixelSize: 6,
-                    polygon: false,
-                    pathOptions: {
-                        color: '#FFF',
-                        opacity: 1,
-                        weight: 2,
-                    }
-                })
-            {{/if}}
+            // The page is built once per (size, zoom, background layer) and
+            // may render many maps: renderMap(params) swaps the overlays and
+            // the view and sets window.mapRendered once the background layer
+            // has drawn the new view. Everything that is not part of the
+            // background layer (geojson, arrows, scale, attribution, view) is a
+            // renderMap parameter, so a page can be reused between renders.
 
             var maxZoom = Number({{maxZoom}});
             var initialPoint = L.latLng(-34.921779, -57.9524339);
+            var defaultIcon = L.icon({
+                iconUrl: "data:image/png;base64,//markericonpng//",
+                iconSize: [25, 41],
+                iconAnchor: [15, 41]
+            });
 
             var map = new L.Map('map', {
                 zoomControl: false,
                 center: initialPoint,
                 zoom: maxZoom,
-                maxZoom: maxZoom
+                maxZoom: maxZoom,
+                zoomAnimation: false,
+                fadeAnimation: false,
+                markerZoomAnimation: false
             });
-            map.attributionControl.setPrefix('').addAttribution('{{ attribution }}');
-
-            {{#if scale}}
-                L.control.scale({{{scale}}}).addTo(map);
-            {{/if}}
-
-            {{#if geojson }}
-                {{#if markerIconOptions}}
-                    var myIcon = L.icon({{{markerIconOptions}}});
-                {{else}}
-                    var myIcon = L.icon({
-                        iconUrl: "data:image/png;base64,//markericonpng//",
-                        iconSize: [25, 41],
-                        iconAnchor: [15, 41]
-                    });
-                {{/if}}
-                var geojsonlayer = L.geoJson({{{ geojson }}}, {
-                    pointToLayer: function (feature, latlng) {
-                        if (feature.markerIconOptions) {
-                            return L.marker(latlng, {icon: L.icon(feature.markerIconOptions)})
-                        }
-                        return L.marker(latlng, {icon: myIcon});
-                    },
-                    onEachFeature: function (feature, layer) {
-                        {{#if arrows}}
-                            if (feature.type == 'LineString' || (feature.geometry && feature.geometry.type == 'LineString')) {
-                                L.polylineDecorator(L.polyline(layer._latlngs), {patterns: [
-                                    {offset: 5, repeat: 150, symbol: decorator},
-                                    {offset: 12, repeat: 150, symbol: decorator},
-                                    {offset: 19, repeat: 150, symbol: decorator},
-                                ]}).addTo(map);
-                            }
-                        {{/if}}
-                    },
-                    style: function(feature) {
-                        var style = {}
-                        {{#if arrows}}
-                            Object.assign(style, { weight: 10 })
-                        {{/if}}
-                        {{#if style}}
-                            Object.assign(style, {{{ style }}})
-                        {{/if}}
-                        if (feature.geometry.pathOptions) {
-                            Object.assign(style, feature.geometry.pathOptions)
-                        }
-                        return style
-                    },
-                });
-                geojsonlayer.addTo(map);
-                map.fitBounds(geojsonlayer.getBounds(), {maxZoom: maxZoom});
-            {{/if}}
-
-            {{#if center}}
-                map.panTo(L.latLng('{{ center }}'.split(',')[1], '{{ center }}'.split(',')[0]), {animate: false});
-            {{else}}
-                {{#if geojson}}
-                {{else}}
-                    map.panTo(initialPoint, {animate: false});
-                {{/if}}
-            {{/if}}
-
-            {{#if zoom}}
-                map.setZoom({{ zoom }}, {animate: false});
-            {{else}}
-                {{#if geojson }}
-                {{else}}
-                    map.setZoom(maxZoom, {animate: false})
-                {{/if}}
-            {{/if}}
+            map.attributionControl.setPrefix('');
 
             {{#if vectorserverUrl}}
                 var gl = L.maplibreGL({
@@ -159,21 +84,151 @@
                 });
                 gl.addTo(map);
                 var backgroundLayer = gl.getMaplibreMap();
-                backgroundLayer.on('load', onLoadFn);
+                // The leaflet plugin forwards the view to maplibre through a
+                // throttled handler; push it synchronously so loaded() is
+                // false right after the view changed.
+                function syncBackground() {
+                    gl._update();
+                }
+                function backgroundReady() {
+                    return backgroundLayer.loaded();
+                }
             {{else}}
-                {{#if tileserverUrl}}
-                    var backgroundLayer = L.tileLayer(
-                        '{{{tileserverUrl}}}',
-                        {
-                            maxZoom: maxZoom,
-                            fadeAnimation: false
-                        }
-                    );
-                    backgroundLayer.addTo(map);
-                    backgroundLayer.on('load', onLoadFn);
-                {{/if}}
+                var backgroundLayer = L.tileLayer(
+                    '{{{tileserverUrl}}}',
+                    {
+                        maxZoom: maxZoom,
+                        fadeAnimation: false
+                    }
+                );
+                backgroundLayer.addTo(map);
+                // Leaflet queues the tiles of a new view synchronously.
+                function syncBackground() {}
+                function backgroundReady() {
+                    return !backgroundLayer.isLoading();
+                }
             {{/if}}
 
+            var overlays = [];
+            var scaleControl = null;
+            var currentAttribution = null;
+
+            function clearOverlays() {
+                overlays.forEach(function (layer) { map.removeLayer(layer); });
+                overlays = [];
+                if (scaleControl) {
+                    map.removeControl(scaleControl);
+                    scaleControl = null;
+                }
+                if (currentAttribution) {
+                    map.attributionControl.removeAttribution(currentAttribution);
+                    currentAttribution = null;
+                }
+            }
+
+            function addGeojson(params) {
+                var decorator = params.arrows && L.Symbol.arrowHead({
+                    pixelSize: 6,
+                    polygon: false,
+                    pathOptions: {
+                        color: '#FFF',
+                        opacity: 1,
+                        weight: 2,
+                    }
+                });
+                var myIcon = params.markerIconOptions ? L.icon(params.markerIconOptions) : defaultIcon;
+                var geojsonlayer = L.geoJson(JSON.parse(params.geojson), {
+                    pointToLayer: function (feature, latlng) {
+                        if (feature.markerIconOptions) {
+                            return L.marker(latlng, {icon: L.icon(feature.markerIconOptions)})
+                        }
+                        return L.marker(latlng, {icon: myIcon});
+                    },
+                    onEachFeature: function (feature, layer) {
+                        if (params.arrows) {
+                            if (feature.type == 'LineString' || (feature.geometry && feature.geometry.type == 'LineString')) {
+                                var arrows = L.polylineDecorator(L.polyline(layer._latlngs), {patterns: [
+                                    {offset: 5, repeat: 150, symbol: decorator},
+                                    {offset: 12, repeat: 150, symbol: decorator},
+                                    {offset: 19, repeat: 150, symbol: decorator},
+                                ]});
+                                arrows.addTo(map);
+                                overlays.push(arrows);
+                            }
+                        }
+                    },
+                    style: function(feature) {
+                        var style = {}
+                        if (params.arrows) {
+                            Object.assign(style, { weight: 10 })
+                        }
+                        if (params.style) {
+                            Object.assign(style, params.style)
+                        }
+                        if (feature.geometry.pathOptions) {
+                            Object.assign(style, feature.geometry.pathOptions)
+                        }
+                        return style
+                    },
+                });
+                geojsonlayer.addTo(map);
+                overlays.push(geojsonlayer);
+                // reset: recompute leaflet's pixel origin so a reused page renders exactly like a fresh one
+                map.fitBounds(geojsonlayer.getBounds(), {maxZoom: maxZoom, animate: false, reset: true});
+            }
+
+            window.renderMap = function (params) {
+                window.mapRendered = false;
+                window.mapError = null;
+                var initTime = performance.now();
+                try {
+                    clearOverlays();
+
+                    currentAttribution = params.attribution || '';
+                    map.attributionControl.addAttribution(currentAttribution);
+                    if (params.scale) {
+                        scaleControl = L.control.scale(params.scale === true ? {} : params.scale).addTo(map);
+                    }
+
+                    if (params.geojson) {
+                        addGeojson(params);
+                    }
+                    var center = map.getCenter();
+                    var zoom = map.getZoom();
+                    if (params.center) {
+                        var c = String(params.center).split(',');
+                        center = L.latLng(c[1], c[0]);
+                    } else if (!params.geojson) {
+                        center = initialPoint;
+                    }
+                    if (params.zoom) {
+                        zoom = Number(params.zoom);
+                    } else if (!params.geojson) {
+                        zoom = maxZoom;
+                    }
+                    if (params.center || params.zoom || !params.geojson) {
+                        map.setView(center, zoom, {animate: false, reset: true});
+                    }
+
+                    syncBackground();
+                    function check() {
+                        if (backgroundReady()) {
+                            window.mapRendered = true;
+                            console.log('map rendered time: ' + (performance.now() - initTime) + 'ms');
+                        } else {
+                            requestAnimationFrame(check);
+                        }
+                    }
+                    requestAnimationFrame(check);
+                } catch (e) {
+                    window.mapError = String(e && e.message || e);
+                }
+            };
+
+            var initialParams = {{{ initialParams }}};
+            if (initialParams) {
+                window.renderMap(initialParams);
+            }
         </script>
     </body>
 </html>

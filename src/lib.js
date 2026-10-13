@@ -32,11 +32,17 @@ async function loadPuppeteer() {
 // caller can fall back to a system browser. `executablePath()` returns a
 // Promise since puppeteer v25.
 async function bundledBrowserPath() {
-  try {
-    return await puppeteer.executablePath();
-  } catch {
-    return null;
+  // chrome-headless-shell (the lightweight headless-only build) when it is
+  // installed, else the regular chrome build.
+  for (const which of [{ headless: 'shell' }, undefined]) {
+    try {
+      const found = await puppeteer.executablePath(which);
+      if (found && existsSync(found)) return found;
+    } catch {
+      // fall through to the next candidate
+    }
   }
+  return null;
 }
 
 // Best-effort lookup of a browser executable when using puppeteer-core.
@@ -144,10 +150,28 @@ function replacefiles(str) {
   return res
 }
 
+// Idle pages kept for reuse (each one holds a parsed leaflet/maplibre and the
+// background layer's in-memory tiles) and renders after which a page is
+// recycled anyway, to bound the memory of a long-lived server. Overridable
+// with configureBrowser() or OSMSM_MAX_IDLE_PAGES / OSMSM_MAX_RENDERS_PER_PAGE.
+const DEFAULT_MAX_IDLE_PAGES = 4;
+const DEFAULT_MAX_RENDERS_PER_PAGE = 100;
+
+function positiveInt(value, fallback) {
+  const n = Number(value);
+  return Number.isInteger(n) && n >= 0 ? n : fallback;
+}
+
 class Browser {
   /// browser singleton
   constructor() {
     this.browser = null;
+    this.config = {
+      singleProcess: false,
+      isolated: false,
+      maxIdlePages: positiveInt(process.env.OSMSM_MAX_IDLE_PAGES, DEFAULT_MAX_IDLE_PAGES),
+      maxRendersPerPage: positiveInt(process.env.OSMSM_MAX_RENDERS_PER_PAGE, DEFAULT_MAX_RENDERS_PER_PAGE),
+    };
   }
   async launch() {
     await loadPuppeteer();
@@ -176,10 +200,17 @@ class Browser {
         // lets the browser's own cache (honouring the tile server's Cache-Control)
         // serve repeated resources for the whole life of the browser singleton.
         "--disable-features=SplitCacheByNetworkIsolationKey",
+        // One-shot renders (CLI) don't need chromium's process isolation and
+        // render ~40% faster without it. Not for long-lived use: one crashed
+        // render would take the shared browser down.
+        ...(this.config.singleProcess ? ["--single-process"] : []),
       ],
       defaultViewport: chrome.defaultViewport,
       executablePath,
-      headless: true,
+      // The headless-only chrome-headless-shell build renders ~20% faster
+      // than the full browser in headless mode; with a full chrome binary
+      // puppeteer falls back to its regular headless mode.
+      headless: 'shell',
       acceptInsecureCerts: true,
     });
   }
@@ -206,6 +237,7 @@ class Browser {
     return browser.newPage()
   }
   async close() {
+    await pool.closeAll();
     if (this.browser && this.browser.connected) {
       await this.browser.close();
     }
@@ -214,8 +246,91 @@ class Browser {
 }
 const browser = new Browser();
 
+function closePage(page) {
+  return page.close().catch((e) => console.log("Error closing page: " + e));
+}
+
+// Pages that already parsed the map libraries and loaded the background
+// layer, keyed by everything the page's html depends on (see pageKey): a
+// render that finds an idle page for its key only swaps the overlays and the
+// view (renderMap in template.html) instead of building a new page.
+class PagePool {
+  constructor() {
+    this.idle = [];
+    this.busy = new Set();
+  }
+  take(key) {
+    this.idle = this.idle.filter((e) => !e.dead && !e.page.isClosed());
+    const i = this.idle.findIndex((e) => e.key === key);
+    if (i < 0) return null;
+    const [entry] = this.idle.splice(i, 1);
+    this.busy.add(entry);
+    return entry;
+  }
+  add(page, key) {
+    const entry = { page, key, renders: 0, dead: false, onError: null, haltOnConsoleError: false };
+    const fail = (err) => entry.onError && entry.onError(err instanceof Error ? err : new Error(String(err)));
+    page.on('error', (err) => { entry.dead = true; fail(err); });
+    page.on('pageerror', (err) => { entry.dead = true; fail(err); });
+    page.on('console', (msg) => {
+      if (entry.haltOnConsoleError && msg.type() === "error") {
+        fail(new Error(`Console error while rendering the map: ${msg.text()}`));
+      }
+    });
+    this.busy.add(entry);
+    return entry;
+  }
+  async release(entry, keep) {
+    this.busy.delete(entry);
+    entry.onError = null;
+    if (keep && !entry.dead && !entry.page.isClosed() && entry.renders < browser.config.maxRendersPerPage) {
+      this.idle.push(entry);
+      while (this.idle.length > browser.config.maxIdlePages) {
+        await closePage(this.idle.shift().page);
+      }
+    } else {
+      await closePage(entry.page);
+    }
+  }
+  async closeAll() {
+    const all = [...this.idle, ...this.busy];
+    this.idle = [];
+    this.busy.clear();
+    await Promise.all(all.map((e) => closePage(e.page)));
+  }
+}
+const pool = new PagePool();
+
+function pageKey(options) {
+  return JSON.stringify([
+    options.width,
+    options.height,
+    options.maxZoom,
+    options.vectorserverUrl,
+    options.vectorserverToken,
+    options.vectorserverAttribution,
+    options.vectorserverUrl ? '' : options.tileserverUrl,
+  ]);
+}
+
 export async function closeBrowser() {
   await browser.close();
+}
+
+// Process-wide settings for the shared browser. `singleProcess` (chromium
+// --single-process, only for one-shot use) applies to the next launch;
+// `isolated` is the default for the render option of the same name;
+// `maxIdlePages` / `maxRendersPerPage` bound the warm page pool.
+export function configureBrowser({ singleProcess, isolated, maxIdlePages, maxRendersPerPage } = {}) {
+  if (singleProcess !== undefined) browser.config.singleProcess = !!singleProcess;
+  if (isolated !== undefined) browser.config.isolated = !!isolated;
+  if (maxIdlePages !== undefined) browser.config.maxIdlePages = positiveInt(maxIdlePages, browser.config.maxIdlePages);
+  if (maxRendersPerPage !== undefined) browser.config.maxRendersPerPage = positiveInt(maxRendersPerPage, browser.config.maxRendersPerPage);
+}
+
+// Number of warm pages kept for reuse and currently rendering.
+export function browserStats() {
+  return { idlePages: pool.idle.length, busyPages: pool.busy.size };
 }
 
 // Eagerly launch chromium (e.g. at server startup) so the launch happens and
@@ -267,6 +382,17 @@ function normalizeQuality(quality) {
   return q;
 }
 
+// Options the CLI/server pass as JSON strings and the library as objects.
+function parseJsonOption(name, value) {
+  if (!value) return false;
+  if (typeof value !== 'string') return value;
+  try {
+    return JSON.parse(value);
+  } catch {
+    throw new Error(`'${name}' must be a JSON string (got '${value}')`);
+  }
+}
+
 export default function(options) {
   return new Promise(function(resolve, reject) {
     // TODO: validate options to avoid template injection
@@ -296,6 +422,10 @@ export default function(options) {
     options.style = (options.style && (typeof options.style === 'string' ? options.style : JSON.stringify(options.style))) || false;
     options.timeout = options.timeout || 20000;
     options.haltOnConsoleError = !!options.haltOnConsoleError;
+    options.isolated =
+      options.isolated === undefined || options.isolated === null || options.isolated === ''
+        ? browser.config.isolated
+        : options.isolated !== false && options.isolated !== 'false';
 
     (async () => {
 
@@ -316,30 +446,56 @@ export default function(options) {
         }
       }
 
-      const html = replacefiles(template(options));
+      // Everything renderMap() (template.html) needs for this render; the
+      // rest of the options shape the page itself (see pageKey).
+      const renderParams = {
+        geojson: options.geojson,
+        center: options.center,
+        zoom: options.zoom,
+        attribution: options.attribution,
+        arrows: !!options.arrows,
+        scale: parseJsonOption('scale', options.scale),
+        markerIconOptions: parseJsonOption('markerIconOptions', options.markerIconOptions),
+        style: parseJsonOption('style', options.style),
+      };
+      // Embedded in a <script>, so '<' must not be able to close it.
+      const initialParams = JSON.stringify(renderParams).replace(/</g, '\\u003c');
+      const html = replacefiles(template({ ...options, initialParams }));
 
       if (options.renderToHtml) {
         return resolve(html);
       }
 
-      const page = await browser.getPage();
+      const key = pageKey(options);
+      let entry = options.isolated ? null : pool.take(key);
+      const reused = !!entry;
+      if (!entry) {
+        entry = pool.add(await browser.getPage(), key);
+      }
+      const page = entry.page;
+      let rendered = false;
       try {
-        page.on('error', function (err) { reject(err instanceof Error ? err : new Error(String(err))) })
-        page.on('pageerror', function (err) { reject(err instanceof Error ? err : new Error(String(err))) })
-        if (options.haltOnConsoleError) {
-          page.on('console', function (msg) {
-            if (msg.type() === "error") {
-              reject(new Error(`Console error while rendering the map: ${msg.text()}`));
-            }
-          })
-        }
-        await page.setViewport({
-          width: Number(options.width),
-          height: Number(options.height)
-        });
+        entry.onError = reject;
+        entry.haltOnConsoleError = options.haltOnConsoleError;
+        entry.renders++;
 
-        await page.setContent(html);
-        await page.waitForFunction(() => window.mapRendered === true, { timeout: Number(options.timeout) });
+        if (reused) {
+          await page.evaluate((params) => window.renderMap(params), renderParams);
+        } else {
+          await page.setViewport({
+            width: Number(options.width),
+            height: Number(options.height)
+          });
+          await page.setContent(html);
+        }
+        await page.waitForFunction(
+          () => window.mapRendered === true || !!window.mapError,
+          { timeout: Number(options.timeout) }
+        );
+        const mapError = await page.evaluate(() => window.mapError);
+        if (mapError) {
+          throw new Error(`Error rendering the map: ${mapError}`);
+        }
 
         let imageBinary = await page.screenshot({
           type: options.type,
@@ -347,6 +503,7 @@ export default function(options) {
           quality: options.type === 'png' ? undefined : options.quality,
           fullPage: true
         });
+        rendered = true;
 
         // imagemin only ships lossless plugins for png/jpeg and oxipng only
         // handles png; webp (and jpeg for oxipng) is returned as rendered.
@@ -409,7 +566,9 @@ export default function(options) {
 
       }
       finally {
-        await page.close().catch((e) => console.log("Error closing page: " + e));
+        // A page whose render failed or timed out may still be loading; only
+        // a page that rendered is safe to hand to the next render.
+        await pool.release(entry, rendered && !options.isolated);
       }
 
     })().catch(reject)

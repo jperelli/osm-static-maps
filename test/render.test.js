@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import http from 'http';
-import osmsm, { closeBrowser } from '../src/lib.js';
+import osmsm, { closeBrowser, browserStats } from '../src/lib.js';
 
 // Integration tests that actually launch the headless browser and render an
 // image. To stay hermetic (no network flakiness) we serve every map tile from
@@ -119,19 +119,64 @@ describe('image rendering', () => {
     await new Promise((resolve) => cachingServer.listen(0, resolve));
     try {
       const url = `http://localhost:${cachingServer.address().port}/cached/{z}/{x}/{y}.png`;
-      await osmsm({ geojson: POINT, tileserverUrl: url });
+      // isolated: a fresh page each time, so only chromium's HTTP cache can
+      // avoid the second download (a reused page keeps the tiles in memory)
+      await osmsm({ geojson: POINT, tileserverUrl: url, isolated: true });
       const firstRender = hits;
       expect(firstRender).toBeGreaterThan(0);
-      await osmsm({ geojson: POINT, tileserverUrl: url });
+      await osmsm({ geojson: POINT, tileserverUrl: url, isolated: true });
       expect(hits).toBe(firstRender);
     } finally {
       await new Promise((resolve) => cachingServer.close(resolve));
     }
   });
 
+  it('rejects a geojson that is not valid JSON instead of timing out', async () => {
+    await expect(osmsm({ geojson: '{not json', tileserverUrl, timeout: 5000 })).rejects.toThrow(/Error rendering the map/);
+  });
+
   it('renders without any geojson (empty map)', async () => {
     const img = await osmsm({ tileserverUrl });
     expect(Buffer.isBuffer(img)).toBe(true);
     expect(img.subarray(0, 8).equals(PNG_SIGNATURE)).toBe(true);
+  });
+});
+
+describe('page reuse', () => {
+  const LINE_A = '{"type":"LineString","coordinates":[[-105.02,39.57],[-105.01,39.58]]}';
+  const LINE_B = '{"type":"LineString","coordinates":[[-105.03,39.56],[-105.00,39.59],[-105.02,39.60]]}';
+
+  it('keeps one warm page per page key and reuses it', async () => {
+    const before = browserStats().idlePages;
+    const a = await osmsm({ geojson: LINE_A, tileserverUrl, width: 300, height: 200, arrows: true });
+    const b = await osmsm({ geojson: LINE_B, tileserverUrl, width: 300, height: 200 });
+    expect(browserStats().idlePages).toBe(before + 1);
+    expect(a.equals(b)).toBe(false);
+    expect(pngDimensions(b)).toEqual({ width: 300, height: 200 });
+
+    await osmsm({ geojson: LINE_B, tileserverUrl, width: 310, height: 200 });
+    expect(browserStats().idlePages).toBe(before + 2);
+    expect(browserStats().busyPages).toBe(0);
+  });
+
+  it('renders the same image from a warm page as from a fresh one', async () => {
+    const fresh = await osmsm({ geojson: LINE_A, tileserverUrl, width: 300, height: 200, isolated: true });
+    await osmsm({ geojson: LINE_B, tileserverUrl, width: 300, height: 200 });
+    const warm = await osmsm({ geojson: LINE_A, tileserverUrl, width: 300, height: 200 });
+    expect(warm.equals(fresh)).toBe(true);
+  });
+
+  it('isolated renders do not keep a page', async () => {
+    const before = browserStats().idlePages;
+    await osmsm({ geojson: LINE_A, tileserverUrl, width: 123, height: 99, isolated: true });
+    await osmsm({ geojson: LINE_A, tileserverUrl, width: 123, height: 99, isolated: 'true' });
+    expect(browserStats().idlePages).toBe(before);
+  });
+
+  it('drops a page whose render failed', async () => {
+    const before = browserStats().idlePages;
+    await expect(osmsm({ geojson: '{not json', tileserverUrl, width: 321, height: 99, timeout: 5000 })).rejects.toThrow();
+    expect(browserStats().idlePages).toBe(before);
+    expect(browserStats().busyPages).toBe(0);
   });
 });

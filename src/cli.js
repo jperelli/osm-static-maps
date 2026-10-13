@@ -2,7 +2,7 @@
 
 import { networkInterfaces } from "os";
 import { program } from "commander";
-import osmsm, { warmupBrowser } from "./lib.js";
+import osmsm, { warmupBrowser, configureBrowser } from "./lib.js";
 
 function getLocalIp() {
   const interfaces = networkInterfaces();
@@ -115,6 +115,11 @@ program
     "throw error if there is any console.error(...) when rendering the map image",
     false
   )
+  .option(
+    "-i, --isolated",
+    "render in a fresh browser page instead of reusing a warm one (only matters within one process, e.g. serve)",
+    false
+  )
   .action(function(...args) {
     // commander passes the Command instance as the last action argument.
     const opts = args[args.length - 1].opts();
@@ -136,6 +141,9 @@ program
       process.exit(2);
     }
 
+    // One-shot render: nothing else shares this browser, so skip chromium's
+    // process isolation (faster startup and render).
+    configureBrowser({ singleProcess: true });
     osmsm(opts)
       .then(v => {
         process.stdout.write(v);
@@ -151,9 +159,17 @@ program
 program
   .command("serve")
   .option("-p, --port <number>", "Port number to listen")
+  .option("-i, --isolated", "render every request in a fresh browser page (default: reuse warm pages; a request can still pass isolated=true)", false)
+  .option("--max-idle-pages <number>", "warm pages kept for reuse (env OSMSM_MAX_IDLE_PAGES)", 4)
+  .option("--max-renders-per-page <number>", "renders after which a warm page is closed and rebuilt (env OSMSM_MAX_RENDERS_PER_PAGE)", 100)
   .action(async function(cmd) {
     const server = (await import("./server.js")).default;
     const port = cmd.port || process.env.PORT || 3000;
+    configureBrowser({
+      isolated: cmd.isolated,
+      maxIdlePages: process.env.OSMSM_MAX_IDLE_PAGES ?? cmd.maxIdlePages,
+      maxRendersPerPage: process.env.OSMSM_MAX_RENDERS_PER_PAGE ?? cmd.maxRendersPerPage,
+    });
     // Launch chromium up front so the "Launching chromium" log appears at
     // startup (before request logs) and the first request isn't slowed by it.
     await warmupBrowser();

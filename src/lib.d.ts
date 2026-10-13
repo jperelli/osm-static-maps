@@ -149,6 +149,16 @@ interface OsmStaticMapsOptions {
    * @defaultValue `false`
    */
   haltOnConsoleError?: boolean;
+
+  /**
+   * render in a fresh browser page and close it afterwards. By default pages
+   * that already parsed the map libraries and loaded the background layer are
+   * kept warm and reused by later renders with the same size, `maxZoom` and
+   * tile/vector server, which makes a repeated or neighbouring render several
+   * times faster.
+   * @defaultValue `false` (or the value given to `configureBrowser`)
+   */
+  isolated?: boolean;
 }
 
 /** Renders a map controlled by the options passed and returns an image */
@@ -163,4 +173,28 @@ declare namespace _default {
    * browser is launched automatically on the next render.
    */
   export function closeBrowser(): Promise<void>;
+
+  /**
+   * Launches the shared headless browser up front (e.g. at server startup)
+   * instead of lazily on the first render.
+   */
+  export function warmupBrowser(): Promise<void>;
+
+  /**
+   * Process-wide browser settings. `singleProcess` launches chromium with
+   * `--single-process` (faster, but one crashed render takes the browser
+   * down: only for one-shot use, the CLI sets it). `isolated` is the default
+   * for the render option of the same name.
+   */
+  export function configureBrowser(options: {
+    singleProcess?: boolean;
+    isolated?: boolean;
+    /** warm pages kept for reuse, default 4 (env `OSMSM_MAX_IDLE_PAGES`) */
+    maxIdlePages?: number;
+    /** renders after which a warm page is closed and rebuilt, default 100 (env `OSMSM_MAX_RENDERS_PER_PAGE`) */
+    maxRendersPerPage?: number;
+  }): void;
+
+  /** Warm pages kept for reuse and pages currently rendering. */
+  export function browserStats(): { idlePages: number; busyPages: number };
 }

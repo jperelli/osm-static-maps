@@ -46,14 +46,26 @@ describe('renderToHtml', () => {
     expect(html).toContain('my custom legend');
   });
 
-  it('only includes the polyline decorator and scale when requested', async () => {
+  it('only enables the arrows and scale when requested', async () => {
     const plain = await osmsm({ renderToHtml: true });
-    expect(plain).not.toContain('L.control.scale(');
-    expect(plain).not.toContain('arrowHead');
+    expect(plain).toContain('"arrows":false');
+    expect(plain).toContain('"scale":false');
 
-    const decorated = await osmsm({ arrows: true, scale: true, renderToHtml: true });
-    expect(decorated).toContain('L.control.scale(');
-    expect(decorated).toContain('arrowHead');
+    const decorated = await osmsm({ arrows: true, scale: '{"imperial":false}', renderToHtml: true });
+    expect(decorated).toContain('"arrows":true');
+    expect(decorated).toContain('"scale":{"imperial":false}');
+  });
+
+  it('cannot break out of the script tag through the geojson', async () => {
+    const html = await osmsm({
+      geojson: { type: 'Feature', properties: { name: '</script><b>x' }, geometry: { type: 'Point', coordinates: [1, 2] } },
+      renderToHtml: true,
+    });
+    expect(html).not.toContain('</script><b>');
+  });
+
+  it('rejects a style that is not valid JSON', async () => {
+    await expect(osmsm({ style: '{weight: 3', renderToHtml: true })).rejects.toThrow(/'style' must be a JSON string/);
   });
 
   it('wires up the maplibre vector layer only when vectorserverUrl is set', async () => {

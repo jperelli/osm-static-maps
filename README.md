@@ -107,10 +107,19 @@ All parameters have a short and long version. The short version can be used only
 | k | markerIconOptions | set marker icon options ([a json options object](https://leafletjs.com/reference-1.9.4.html#icon-option)) *see note | `undefined` (leaflet's default marker) |
 | S | style | style to apply to each feature ([a json options object](https://leafletjs.com/reference-1.9.4.html#path-option)) *see note | `undefined` (leaflet's default) |
 | e | haltOnConsoleError | throw error if there is any `console.error(...)` when rendering the map image | `false` |
+| i | isolated | render in a fresh browser page instead of reusing a warm one (see [Page reuse](#page-reuse)) | `false` |
 
 * Note on markerIconOptions: it's also accepted a markerIconOptions attribute in the geojson feature, for example `{"type":"Point","coordinates":[-105.01621,39.57422],"markerIconOptions":{"iconUrl":"https://leafletjs.com/examples/custom-icons/leaf-red.png"}}`
 
 * Note on style: it's also accepted a pathOptions attribute in the geojson feature, for example `{"type":"Polygon","coordinates":[[[-56.698,-36.413],[-56.716,-36.348],[-56.739,-36.311]]],"pathOptions":{"color":"#FF5555"}}` (also remember that the `#` char needs to be passed as `%23` if you are using GET params)
+
+## Page reuse
+
+Every render needs a browser page with leaflet/maplibre parsed and the background layer loaded, which is most of the time of a render once the tiles are cached. Since 6.0.0 those pages are kept warm and reused: a render that finds an idle page with the same `width`, `height`, `maxZoom`, tile/vector server, token, attribution setting and marker icon only swaps the geojson, arrows, scale, attribution text and view inside it. Repeated or neighbouring renders (e.g. many routes of the same city) get several times faster; a render in an area whose tiles are not loaded yet is still bound by the tile download. By default up to 4 idle pages are kept and a page is closed and rebuilt after 100 renders (`configureBrowser({ maxIdlePages, maxRendersPerPage })`, `osmsm serve --max-idle-pages N --max-renders-per-page N`, or the env vars `OSMSM_MAX_IDLE_PAGES` / `OSMSM_MAX_RENDERS_PER_PAGE`); a page whose render failed is closed. Idle pages only cost memory while they wait; closing one drops its in-memory tiles, not chromium's HTTP cache, so the rebuilt page re-reads them from the disk cache.
+
+Pass `isolated: true` (`-i, --isolated` on the CLI, `?isolated=true` on the server, `osmsm serve --isolated` to make it the default) to render in a fresh page that is closed afterwards.
+
+The one-shot CLI additionally launches chromium with `--single-process`; `serve` and the library never do, as one crashed render would take the shared browser down.
 
 ## Development
 
