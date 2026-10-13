@@ -1,3 +1,8 @@
+# 5.2.1
+
+ - Same tile cache as 5.2.0 (chromium's own HTTP cache) without the loopback page server: the page is loaded with `page.setContent()` again and chromium is launched with `--disable-features=SplitCacheByNetworkIsolationKey`. Chromium partitions its HTTP cache by top-frame origin and never caches for the opaque about:blank origin a `setContent()` page has; with the partitioning disabled the cache applies to it like to any other page. Same measured effect (repeated/neighbouring OpenFreeMap render ~2.4 s -> ~0.5 s, 0 tile requests), no extra server, no temp files, no interception
+ - `closeBrowser()` is back to only closing the browser
+
 # 5.2.0
 
  - Tiles, glyphs and sprites are cached again between renders, this time by chromium's own HTTP cache: the rendered page is now served to the browser from a loopback HTTP server (`http://127.0.0.1:<random port>/<uuid>.html`) instead of `page.setContent()`. `setContent()` gives the page an opaque origin, for which chromium never reuses its HTTP cache, so every render re-downloaded everything. The cache honours the tile server's `Cache-Control`/`max-age`, is shared by all pages of the browser singleton (so it works for the whole life of `osmsm serve`), and involves no request interception, so it cannot stall a request like the cache removed in 5.1.1 did. Measured on OpenFreeMap vector tiles: a repeated or neighbouring render drops from ~2.4 s to ~0.5 s and makes 0 tile requests
