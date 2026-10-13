@@ -1,3 +1,11 @@
+# 5.1.0
+
+ - Add `webp` as an output format (`type: 'webp'` / `-F webp` / `?type=webp`), served with `Content-Type: image/webp`
+ - `quality` (`0`-`100`) now applies to both `jpeg` and `webp`; `quality: 0` is no longer silently replaced by `100`
+ - Accept `jpg` as an alias of `jpeg`
+ - Validate `type` and `quality` in the library (server now answers `400` instead of `500` for them)
+ - `imagemin`/`oxipng` are skipped for formats they cannot handle (`webp`, and `jpeg` for oxipng) instead of corrupting or failing the output
+
 # 5.0.0
 
 Modernize package with multiple improvements

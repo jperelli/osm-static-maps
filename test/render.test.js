@@ -67,6 +67,48 @@ describe('image rendering', () => {
     expect(img[2]).toBe(0xff);
   });
 
+  it('renders to WebP when type is "webp"', async () => {
+    const img = await osmsm({ geojson: POINT, tileserverUrl, type: 'webp' });
+    expect(Buffer.isBuffer(img)).toBe(true);
+    expect(img.length).toBeGreaterThan(0);
+    // WebP files are RIFF containers: "RIFF" <size> "WEBP"
+    expect(img.subarray(0, 4).toString('ascii')).toBe('RIFF');
+    expect(img.subarray(8, 12).toString('ascii')).toBe('WEBP');
+  });
+
+  it('accepts "jpg" as an alias of "jpeg"', async () => {
+    const img = await osmsm({ geojson: POINT, tileserverUrl, type: 'jpg' });
+    expect(img[0]).toBe(0xff);
+    expect(img[1]).toBe(0xd8);
+  });
+
+  it('lower quality produces a smaller jpeg and webp', async () => {
+    for (const type of ['jpeg', 'webp']) {
+      const hi = await osmsm({ geojson: POINT, tileserverUrl, type, quality: 100 });
+      const lo = await osmsm({ geojson: POINT, tileserverUrl, type, quality: 10 });
+      expect(lo.length).toBeLessThan(hi.length);
+    }
+  });
+
+  it('accepts quality as a string (as sent by server query params)', async () => {
+    const img = await osmsm({ geojson: POINT, tileserverUrl, type: 'webp', quality: '50' });
+    expect(img.subarray(8, 12).toString('ascii')).toBe('WEBP');
+  });
+
+  it('ignores quality for png (lossless)', async () => {
+    const img = await osmsm({ geojson: POINT, tileserverUrl, type: 'png', quality: 10 });
+    expect(img.subarray(0, 8).equals(PNG_SIGNATURE)).toBe(true);
+  });
+
+  it('rejects an unknown type', async () => {
+    await expect(osmsm({ geojson: POINT, tileserverUrl, type: 'gif' })).rejects.toThrow(/'type'/);
+  });
+
+  it('rejects an out-of-range quality', async () => {
+    await expect(osmsm({ geojson: POINT, tileserverUrl, type: 'webp', quality: 101 })).rejects.toThrow(/'quality'/);
+    await expect(osmsm({ geojson: POINT, tileserverUrl, type: 'jpeg', quality: 'high' })).rejects.toThrow(/'quality'/);
+  });
+
   it('renders without any geojson (empty map)', async () => {
     const img = await osmsm({ tileserverUrl });
     expect(Buffer.isBuffer(img)).toBe(true);

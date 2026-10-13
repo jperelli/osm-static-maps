@@ -277,6 +277,26 @@ async function configCache(page) {
   });
 }
 
+const IMAGE_TYPES = ['png', 'jpeg', 'webp'];
+
+function normalizeImageType(type) {
+  if (type === undefined || type === null || type === '') return 'png';
+  const t = String(type).toLowerCase() === 'jpg' ? 'jpeg' : String(type).toLowerCase();
+  if (!IMAGE_TYPES.includes(t)) {
+    throw new Error(`'type' can only be one of ${IMAGE_TYPES.map(x => `'${x}'`).join(', ')} (got '${type}')`);
+  }
+  return t;
+}
+
+function normalizeQuality(quality) {
+  if (quality === undefined || quality === null || quality === '') return 100;
+  const q = Number(quality);
+  if (!Number.isInteger(q) || q < 0 || q > 100) {
+    throw new Error(`'quality' must be an integer between 0 and 100 (got '${quality}')`);
+  }
+  return q;
+}
+
 export default function(options) {
   return new Promise(function(resolve, reject) {
     // TODO: validate options to avoid template injection
@@ -296,6 +316,8 @@ export default function(options) {
         ? true
         : options.vectorserverAttribution !== false && options.vectorserverAttribution !== 'false';
     options.attribution = options.attribution || (options.vectorserverUrl ? 'osm-static-maps' : 'osm-static-maps / © OpenStreetMap contributors');
+    options.type = normalizeImageType(options.type);
+    options.quality = normalizeQuality(options.quality);
     options.imagemin = options.imagemin || false;
     options.oxipng = options.oxipng || false;
     options.arrows = options.arrows || false;
@@ -351,12 +373,18 @@ export default function(options) {
         await page.waitForFunction(() => window.mapRendered === true, { timeout: Number(options.timeout) });
 
         let imageBinary = await page.screenshot({
-          type: options.type || 'png',
-          quality: options.type === 'jpeg' ? Number(options.quality || 100) : undefined,
+          type: options.type,
+          // png is lossless, so puppeteer rejects a quality value for it
+          quality: options.type === 'png' ? undefined : options.quality,
           fullPage: true
         });
 
-        if (options.imagemin) {
+        // imagemin only ships lossless plugins for png/jpeg and oxipng only
+        // handles png; webp (and jpeg for oxipng) is returned as rendered.
+        const canImagemin = options.imagemin && ['png', 'jpeg'].includes(options.type);
+        const canOxipng = options.oxipng && options.type === 'png';
+
+        if (canImagemin) {
           let imagemin, imageminJpegtran, imageminOptipng;
           try {
             imagemin = (await import("imagemin")).default;
@@ -385,7 +413,7 @@ export default function(options) {
             ))
           })();
         } else {
-          if (options.oxipng) {
+          if (canOxipng) {
             const child = spawn(resolveOxipng(), ['-o0', '-s', '-']);
             child.stdin.on('error', function() {});
             child.stdin.write(imageBinary);

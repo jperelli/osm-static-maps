@@ -86,25 +86,25 @@ interface OsmStaticMapsOptions {
   renderToHtml?: boolean;
 
   /**
-   * format of the image returned
+   * format of the image returned (`'jpg'` is accepted as an alias of `'jpeg'`)
    * @defaultValue `'png'`
    */
-  type?: "jpeg" | "png";
+  type?: "png" | "jpeg" | "jpg" | "webp";
 
   /**
-   * quality of the image returned (`0`-`100`, only for `jpg`)
+   * quality of the image returned (`0`-`100`, only for `jpeg` and `webp`; `png` is lossless)
    * @defaultValue `100`
    */
   quality?: number;
 
   /**
-   * enable lossless compression with [optipng](https://github.com/imagemin/imagemin-optipng) / [jpegtran](https://github.com/imagemin/imagemin-jpegtran)
+   * enable lossless compression with [optipng](https://github.com/imagemin/imagemin-optipng) / [jpegtran](https://github.com/imagemin/imagemin-jpegtran) (ignored for `webp`)
    * @defaultValue `false`
    */
   imagemin?: boolean;
 
   /**
-   * enable losslsess compression with [oxipng](https://github.com/shssoichiro/oxipng)
+   * enable lossless compression with [oxipng](https://github.com/shssoichiro/oxipng) (`png` only)
    * @defaultValue `false`
    */
   oxipng?: boolean;

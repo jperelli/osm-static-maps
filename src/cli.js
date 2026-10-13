@@ -73,10 +73,10 @@ program
     "Returns html of the webpage containing the leaflet map (instead of a binary image)",
     false
   )
-  .option("-F, --type <jpeg|png>", "Format of the image returned", "png")
+  .option("-F, --type <png|jpeg|webp>", "Format of the image returned", "png")
   .option(
     "-q, --quality <number>",
-    "Quality of the image returned (only for -F=jpeg)",
+    "Quality of the image returned, 0-100 (only for -F=jpeg or -F=webp)",
     Number,
     100
   )
@@ -123,9 +123,15 @@ program
     // process.stderr.write(JSON.stringify(opts, undefined, 2));
     // process.stderr.write("\n");
 
-    if (!["png", "jpeg"].includes(opts.type)) {
+    if (!["png", "jpeg", "jpg", "webp"].includes(opts.type)) {
       process.stderr.write(
-        '-F|--type can only have the values "png" or "jpeg"\n'
+        '-F|--type can only have the values "png", "jpeg" or "webp"\n'
+      );
+      process.exit(2);
+    }
+    if (!Number.isInteger(opts.quality) || opts.quality < 0 || opts.quality > 100) {
+      process.stderr.write(
+        '-q|--quality must be an integer between 0 and 100\n'
       );
       process.exit(2);
     }

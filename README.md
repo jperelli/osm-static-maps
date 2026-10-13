@@ -97,10 +97,10 @@ All parameters have a short and long version. The short version can be used only
 | M | vectorserverToken | used as `Authorization: Bearer <token>` header on vector map requests | `undefined` |
 |   | vectorserverAttribution | append the vector layers source attributions (CLI: `--no-vectorserverAttribution` to disable) | `true` |
 | D | renderToHtml | returns html of the webpage containing the map (instead of a binary image) | `false` |
-| F | type | format of the image returned (`'jpeg'`/`'png'`) | `'png'` |
-| q | quality | quality of the image returned (`0`-`100`, only for `jpg`) | `100` |
-| x | imagemin | enable lossless compression with [optipng](https://github.com/imagemin/imagemin-optipng) / [jpegtran](https://github.com/imagemin/imagemin-jpegtran) | `false` |
-| X | oxipng | enable losslsess compression with [oxipng](https://github.com/shssoichiro/oxipng) | `false` |
+| F | type | format of the image returned (`'png'`/`'jpeg'`/`'webp'`) | `'png'` |
+| q | quality | quality of the image returned (`0`-`100`, only for `jpeg` and `webp`; `png` is lossless) | `100` |
+| x | imagemin | enable lossless compression with [optipng](https://github.com/imagemin/imagemin-optipng) / [jpegtran](https://github.com/imagemin/imagemin-jpegtran) (ignored for `webp`) | `false` |
+| X | oxipng | enable lossless compression with [oxipng](https://github.com/shssoichiro/oxipng) (`png` only) | `false` |
 | a | arrows | render arrows to show the direction of linestrings | `false` |
 | s | scale | enable render a scale ruler (boolean or [a json options object](https://leafletjs.com/reference-1.9.4.html#control-scale-option)) | `false` |
 | T | timeout | miliseconds until page load throws timeout | `20000` |

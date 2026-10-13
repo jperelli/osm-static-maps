@@ -56,11 +56,15 @@ const handler = (res, params) => {
       if (params.renderToHtml || params.D) {
         res.type("html");
       } else {
-        res.type((params.type || params.F) === "jpeg" ? "jpeg" : "png");
+        const type = String(params.type || params.F || "png").toLowerCase();
+        res.type(type === "jpeg" || type === "jpg" ? "jpeg" : type === "webp" ? "webp" : "png");
       }
       res.end(data);
     })
-    .catch((err) => res.status(500).end(err.toString()));
+    .catch((err) => {
+      const isInputError = /^Error: '(type|quality)'/.test(err.toString());
+      res.status(isInputError ? 400 : 500).end(err.toString());
+    });
 };
 
 app.get("/", (req, res) => handler(res, req.query));
