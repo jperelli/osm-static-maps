@@ -1,5 +1,8 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import http from 'http';
+import os from 'os';
+import zlib from 'zlib';
+import { Worker } from 'worker_threads';
 import osmsm, { closeBrowser, browserStats } from '../src/lib.js';
 
 // Integration tests that actually launch the headless browser and render an
@@ -19,17 +22,86 @@ function pngDimensions(buf) {
   return { width: buf.readUInt32BE(16), height: buf.readUInt32BE(20) };
 }
 
+// A maplibre style with a single solid background layer and no sources: the
+// vector renderer paints the whole canvas red without any tile request.
+const RED_STYLE = JSON.stringify({
+  version: 8,
+  sources: {},
+  layers: [{ id: 'bg', type: 'background', paint: { 'background-color': '#ff0000' } }],
+});
+
+// Decode an 8-bit truecolor (RGB/RGBA, non-interlaced) PNG into raw RGBA.
+function pngPixels(buf) {
+  const { width, height } = pngDimensions(buf);
+  const channels = buf[25] === 6 ? 4 : 3;
+  const idat = [];
+  for (let pos = 8; pos < buf.length;) {
+    const len = buf.readUInt32BE(pos);
+    const type = buf.toString('ascii', pos + 4, pos + 8);
+    if (type === 'IDAT') idat.push(buf.subarray(pos + 8, pos + 8 + len));
+    pos += 12 + len;
+  }
+  const raw = zlib.inflateSync(Buffer.concat(idat));
+  const stride = width * channels;
+  const out = Buffer.alloc(height * stride);
+  for (let y = 0; y < height; y++) {
+    const filter = raw[y * (stride + 1)];
+    const line = raw.subarray(y * (stride + 1) + 1, (y + 1) * (stride + 1));
+    const row = out.subarray(y * stride, (y + 1) * stride);
+    const prev = y > 0 ? out.subarray((y - 1) * stride, y * stride) : Buffer.alloc(stride);
+    for (let x = 0; x < stride; x++) {
+      const a = x >= channels ? row[x - channels] : 0;
+      const b = prev[x];
+      const c = x >= channels ? prev[x - channels] : 0;
+      let pred = 0;
+      if (filter === 1) pred = a;
+      else if (filter === 2) pred = b;
+      else if (filter === 3) pred = (a + b) >> 1;
+      else if (filter === 4) {
+        const p = a + b - c;
+        const pa = Math.abs(p - a), pb = Math.abs(p - b), pc = Math.abs(p - c);
+        pred = pa <= pb && pa <= pc ? a : pb <= pc ? b : c;
+      }
+      row[x] = (line[x] + pred) & 0xff;
+    }
+  }
+  return { width, height, channels, data: out };
+}
+
+// Fraction of pixels close to the given rgb colour.
+function colorFraction(png, [r, g, b], tolerance = 8) {
+  const { data, channels } = pngPixels(png);
+  let hits = 0;
+  for (let i = 0; i < data.length; i += channels) {
+    if (Math.abs(data[i] - r) <= tolerance && Math.abs(data[i + 1] - g) <= tolerance && Math.abs(data[i + 2] - b) <= tolerance) hits++;
+  }
+  return hits / (data.length / channels);
+}
+
+// Busy-loop workers that starve the renderer of CPU like a loaded host.
+function startCpuHogs(n) {
+  const workers = Array.from({ length: n }, () => new Worker('for (;;) {}', { eval: true }));
+  return () => Promise.all(workers.map((w) => w.terminate()));
+}
+
 let server;
 let tileserverUrl;
+let vectorserverUrl;
 
 beforeAll(async () => {
   server = http.createServer((req, res) => {
+    if (req.url.endsWith('/style.json')) {
+      // maplibre fetches the style with CORS from the page's opaque origin
+      res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+      return res.end(RED_STYLE);
+    }
     res.writeHead(200, { 'Content-Type': 'image/png' });
     res.end(TILE_PNG);
   });
   await new Promise((resolve) => server.listen(0, resolve));
   const { port } = server.address();
   tileserverUrl = `http://localhost:${port}/{z}/{x}/{y}.png`;
+  vectorserverUrl = `http://localhost:${port}/style.json`;
 });
 
 afterAll(async () => {
@@ -172,6 +244,25 @@ describe('page reuse', () => {
     await osmsm({ geojson: LINE_A, tileserverUrl, width: 123, height: 99, isolated: 'true' });
     expect(browserStats().idlePages).toBe(before);
   });
+
+  it('never returns a map without its vector background under load', async () => {
+    // Regression test for 6.0.1: with `fullPage: true` chromium temporarily
+    // resized the page during the capture, maplibre cleared its canvas on the
+    // resize and a loaded host could capture it before the redraw, giving the
+    // light-blue leaflet container with only the overlays on it.
+    const stopHogs = startCpuHogs(os.cpus().length * 2);
+    try {
+      const lines = [LINE_A, LINE_B];
+      const renders = Array.from({ length: 24 }, (_, i) =>
+        osmsm({ geojson: lines[i % 2], vectorserverUrl, width: 300, height: 200, arrows: true, maxZoom: 14, isolated: i % 3 === 0 })
+      );
+      const images = await Promise.all(renders);
+      const redFractions = images.map((img) => colorFraction(img, [255, 0, 0]));
+      expect(redFractions.filter((f) => f < 0.5)).toEqual([]);
+    } finally {
+      await stopHogs();
+    }
+  }, 120000);
 
   it('drops a page whose render failed', async () => {
     const before = browserStats().idlePages;

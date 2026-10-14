@@ -497,11 +497,19 @@ export default function(options) {
           throw new Error(`Error rendering the map: ${mapError}`);
         }
 
+        // The viewport already has the requested size, so the screenshot is
+        // the plain viewport capture. Not `fullPage: true`: it makes chromium
+        // capture "beyond the viewport" by temporarily overriding the device
+        // metrics, which resizes the page while it is being captured; the
+        // leaflet-maplibre layer then shrinks and regrows its container and
+        // maplibre resizes (= clears) its WebGL canvas, so on a loaded host
+        // the capture could land on the cleared canvas and return the map
+        // without any background (blank light-blue image).
         let imageBinary = await page.screenshot({
           type: options.type,
           // png is lossless, so puppeteer rejects a quality value for it
           quality: options.type === 'png' ? undefined : options.quality,
-          fullPage: true
+          captureBeyondViewport: false,
         });
         rendered = true;
 
