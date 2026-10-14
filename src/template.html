@@ -84,6 +84,30 @@
                 });
                 gl.addTo(map);
                 var backgroundLayer = gl.getMaplibreMap();
+                // maplibre paints a frame every time a batch of tiles arrives
+                // (4-5 paints per render here); only the last one, with every
+                // tile loaded, ends up in the image. Each paint is software
+                // WebGL (SwiftShader) CPU, so skip the painter until the style
+                // is loaded. Everything else in the frame (source updates,
+                // placement, the render/idle events) still runs.
+                // `Map.painter.render(style, options)` is a maplibre-gl
+                // internal, not public API: package.json pins maplibre-gl to
+                // an exact version and test/render.test.js ("maplibre paint
+                // hook") fails on purpose when the version or the behaviour
+                // changes, so a bump gets re-tested and re-measured.
+                window.osmsmPaints = { skipped: 0, done: 0 };
+                var painter = backgroundLayer.painter;
+                var paint = painter && painter.render;
+                if (typeof paint === 'function') {
+                    painter.render = function (style, options) {
+                        if (!style.loaded()) {
+                            window.osmsmPaints.skipped++;
+                            return;
+                        }
+                        window.osmsmPaints.done++;
+                        return paint.call(painter, style, options);
+                    };
+                }
                 // The leaflet plugin forwards the view to maplibre through a
                 // throttled handler; push it synchronously so loaded() is
                 // false right after the view changed.

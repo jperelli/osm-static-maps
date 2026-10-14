@@ -3,6 +3,8 @@ import http from 'http';
 import os from 'os';
 import zlib from 'zlib';
 import { Worker } from 'worker_threads';
+import { createRequire } from 'module';
+import puppeteer from 'puppeteer';
 import osmsm, { closeBrowser, browserStats } from '../src/lib.js';
 
 // Integration tests that actually launch the headless browser and render an
@@ -13,6 +15,8 @@ const TILE_PNG = Buffer.from(
   'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
   'base64'
 );
+
+const require = createRequire(import.meta.url);
 
 const PNG_SIGNATURE = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
 
@@ -87,9 +91,30 @@ function startCpuHogs(n) {
 let server;
 let tileserverUrl;
 let vectorserverUrl;
+let slowVectorserverUrl;
 
 beforeAll(async () => {
   server = http.createServer((req, res) => {
+    if (req.url.endsWith('/slow-style.json')) {
+      // the red background plus an (invisible) raster source whose tiles
+      // take a while, so the style is not loaded() for the first frames
+      const { port } = server.address();
+      res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+      return res.end(JSON.stringify({
+        version: 8,
+        sources: { slow: { type: 'raster', tiles: [`http://localhost:${port}/slow/{z}/{x}/{y}.png`], tileSize: 256 } },
+        layers: [
+          { id: 'bg', type: 'background', paint: { 'background-color': '#ff0000' } },
+          { id: 'slow', type: 'raster', source: 'slow', paint: { 'raster-opacity': 0 } },
+        ],
+      }));
+    }
+    if (req.url.startsWith('/slow/')) {
+      return setTimeout(() => {
+        res.writeHead(200, { 'Content-Type': 'image/png', 'Access-Control-Allow-Origin': '*' });
+        res.end(TILE_PNG);
+      }, 150);
+    }
     if (req.url.endsWith('/style.json')) {
       // maplibre fetches the style with CORS from the page's opaque origin
       res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
@@ -102,6 +127,7 @@ beforeAll(async () => {
   const { port } = server.address();
   tileserverUrl = `http://localhost:${port}/{z}/{x}/{y}.png`;
   vectorserverUrl = `http://localhost:${port}/style.json`;
+  slowVectorserverUrl = `http://localhost:${port}/slow-style.json`;
 });
 
 afterAll(async () => {
@@ -270,4 +296,73 @@ describe('page reuse', () => {
     expect(browserStats().idlePages).toBe(before);
     expect(browserStats().busyPages).toBe(0);
   });
+});
+
+describe('maplibre paint hook', () => {
+  // src/template.html wraps maplibre's `Map.painter.render(style, options)`
+  // and skips the paint while `!style.loaded()`, so a render paints its
+  // WebGL frame once (every tile loaded) instead of once per batch of
+  // tiles (-30% gpu-process CPU per render with software WebGL, see
+  // CHANGELOG 6.1.0). `painter.render` is NOT public maplibre API: a
+  // maplibre-gl upgrade can rename `painter`/`render`, change its
+  // arguments, or change when `style.loaded()` flips, and the hook would
+  // silently paint every frame again, throw at page load, or never paint.
+  // That is why package.json pins `maplibre-gl` to an exact version and
+  // these tests fail on purpose when it changes: after bumping maplibre-gl,
+  // check the hook against the new `src/ui/map.ts` `_render()`, make sure
+  // the test below still passes and the CPU saving still holds, then
+  // update TESTED_MAPLIBRE_GL.
+  const TESTED_MAPLIBRE_GL = '5.24.0';
+  const DENVER_LINE = '{"type":"LineString","coordinates":[[-105.02,39.57],[-104.98,39.60]]}';
+  const BARCELONA_LINE = '{"type":"LineString","coordinates":[[2.1,41.3],[2.2,41.4]]}';
+
+  it('runs against the maplibre-gl version the hook was written for', () => {
+    expect(require('maplibre-gl/package.json').version).toBe(TESTED_MAPLIBRE_GL);
+    const pkg = require('../package.json');
+    expect(pkg.dependencies['maplibre-gl']).toBe(TESTED_MAPLIBRE_GL);
+    expect(pkg.dependencies['@maplibre/maplibre-gl-leaflet']).toMatch(/^\d+\.\d+\.\d+$/);
+  });
+
+  it('skips the paints before the style is loaded and paints the loaded frame', async () => {
+    const html = await osmsm({ geojson: DENVER_LINE, vectorserverUrl: slowVectorserverUrl, width: 300, height: 200, maxZoom: 14, renderToHtml: true });
+    const browser = await puppeteer.launch({
+      headless: 'shell',
+      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
+      args: ['--no-sandbox', '--disable-setuid-sandbox'],
+    });
+    try {
+      const page = await browser.newPage();
+      const pageErrors = [];
+      page.on('pageerror', (e) => pageErrors.push(String(e)));
+      await page.setViewport({ width: 300, height: 200 });
+      await page.setContent(html);
+      const waitRendered = () => page.waitForFunction(() => window.mapRendered === true || !!window.mapError, { timeout: 30000 });
+      const state = () => page.evaluate(() => ({
+        error: window.mapError,
+        hooked: typeof window.backgroundLayer.painter.render === 'function',
+        paints: { ...window.osmsmPaints },
+      }));
+
+      await waitRendered();
+      const fresh = await state();
+      expect(pageErrors).toEqual([]);
+      expect(fresh.error).toBeNull();
+      expect(fresh.hooked).toBe(true);
+      expect(fresh.paints.skipped).toBeGreaterThan(0);
+      expect(fresh.paints.done).toBeGreaterThan(0);
+
+      // reused page (`window.renderMap`), another area so its tiles are slow again
+      await page.evaluate((params) => window.renderMap(params), { geojson: BARCELONA_LINE, center: '', zoom: '', attribution: 'test', arrows: false });
+      await waitRendered();
+      const reused = await state();
+      expect(reused.error).toBeNull();
+      expect(reused.paints.skipped).toBeGreaterThan(fresh.paints.skipped);
+      expect(reused.paints.done).toBeGreaterThan(fresh.paints.done);
+
+      const png = await page.screenshot({ type: 'png', captureBeyondViewport: false });
+      expect(colorFraction(png, [255, 0, 0])).toBeGreaterThan(0.5);
+    } finally {
+      await browser.close();
+    }
+  }, 60000);
 });
